@@ -24,6 +24,8 @@ const publicClient = createPublicClient({
     transport: http()
 })
 
+const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
+
 // Helper to get referral from query or state
 const getRef = (c: any) => {
   const url = new URL(c.url)
@@ -41,7 +43,7 @@ app.frame('/', async (c) => {
     const logs = await publicClient.getLogs({
         address: CONTRACT_ADDRESS as `0x${string}`,
         event: FIND_CELO_ABI.find((x: any) => x.name === 'TableFilled') as any,
-        fromBlock: 'latest', // Ideally search back a bit, but for mainnet start with recent
+        fromBlock: 'latest',
         strict: true,
     })
 
@@ -92,7 +94,7 @@ app.frame('/', async (c) => {
     ),
     intents: [
       <Button action={`/tables?ref=${ref}`}>Start Game</Button>,
-      <Button.Link href={`${process.env.NEXT_PUBLIC_URL}/leaderboard`}>Leaderboard</Button.Link>,
+      <Button.Link href={`${NEXT_PUBLIC_URL}/leaderboard`}>Leaderboard</Button.Link>,
     ]
   })
 })
@@ -262,7 +264,7 @@ app.frame('/finish', (c) => {
           ),
           intents: [
             <Button action="/">Back to Start</Button>,
-            <Button.Link href={`${process.env.NEXT_PUBLIC_URL}/profile`}>View My Stats</Button.Link>
+            <Button.Link href={`${NEXT_PUBLIC_URL}/profile`}>View My Stats</Button.Link>
           ]
     })
 })
