@@ -4,9 +4,13 @@ import { useState, useEffect, useMemo } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
-import { Trophy, Coins, ChevronDown, Activity } from 'lucide-react'
+import { Trophy, Coins, ChevronDown, Activity, User, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI, TABLE_TYPES, TABLE_COSTS } from '@/src/constants'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 
 export default function Home() {
   const { isConnected, address } = useAccount()
@@ -103,179 +107,201 @@ export default function Home() {
   const userLand = playersList.findIndex((p: string) => p.toLowerCase() === address?.toLowerCase()) + 1
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-[#0a0a0a] text-white font-sans selection:bg-[#FFD700]/30">
-      {/* TOP SECTION */}
-      <div className="w-full max-w-xl px-4 pt-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded">
-            <Activity className="w-3 h-3 text-red-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Live</span>
+    <main className="flex min-h-screen flex-col items-center bg-background text-foreground p-4 md:p-8 font-sans selection:bg-primary/30">
+      <div className="w-full max-w-2xl space-y-8">
+
+        {/* TOP SECTION */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold">
+              <Activity className="w-3 h-3" />
+              Live
+            </Badge>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Round #{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
+            </span>
           </div>
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-            Round #{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
-          </span>
+          <ConnectButton accountStatus="avatar" chainStatus="icon" showBalance={false} />
         </div>
-        <ConnectButton accountStatus="avatar" chainStatus="icon" showBalance={false} />
-      </div>
 
-      <div className="flex flex-col items-center max-w-xl w-full px-4 py-6">
-        {/* MIDDLE SECTION */}
-        <div className="text-center w-full">
-          <h1 className="text-xl md:text-2xl font-black tracking-tighter text-[#FFD700] mb-8 mt-2">
-            🏝️ FINDCELO TREASURE ISLAND 🏝️
+        {/* HEADER SECTION */}
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-primary">
+            FINDCELO
           </h1>
+          <p className="text-muted-foreground text-sm font-medium uppercase tracking-[0.2em]">
+            Treasure Island
+          </p>
+        </div>
 
-          <div className="bg-[#111827] border border-white/5 rounded-2xl p-5 w-full mb-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
-
-            <div className="flex justify-between items-start mb-4">
-              <div className="text-left">
-                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest block mb-1">POT</span>
+        {/* POT CARD */}
+        <Card className="border-border bg-card/50 backdrop-blur-sm overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Current Pot</CardDescription>
                 <div className="flex items-center gap-2">
-                  <Coins className="w-5 h-5 text-[#FFD700]" />
-                  <span className="text-3xl font-black text-white">{potSize} <span className="text-sm text-slate-400">CELO</span></span>
+                  <Coins className="w-6 h-6 text-primary" />
+                  <span className="text-4xl font-black">{potSize} <span className="text-sm font-bold text-muted-foreground">CELO</span></span>
                 </div>
               </div>
-              <div className="text-right flex flex-col items-end">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{seatsFilled} / 6 players</span>
-                <div className="w-24 h-1.5 bg-slate-800 rounded-full mt-2 overflow-hidden">
+              <div className="text-right space-y-2">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">{seatsFilled} / 6 players</span>
+                <div className="w-24 h-2 bg-secondary rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#FFD700] transition-all duration-500"
+                    className="h-full bg-primary transition-all duration-500"
                     style={{ width: `${(seatsFilled / 6) * 100}%` }}
                   ></div>
                 </div>
-                <span className="text-[10px] font-bold text-[#FF8C00] mt-1.5 block">{6 - seatsFilled} slots left</span>
+                <Badge variant="outline" className="text-accent border-accent/20 bg-accent/5 text-[10px]">
+                  {6 - seatsFilled} slots left
+                </Badge>
               </div>
             </div>
-
-            <div className="bg-white/5 rounded-xl p-3 flex items-center justify-center gap-2">
-               <Trophy className="w-4 h-4 text-[#FFD700]" />
-               <span className="text-xs font-medium text-slate-300">
-                  Est. Prize: <span className="font-bold text-[#FFD700]">{winnerPrize} CELO</span>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-muted/50 rounded-xl p-3 flex items-center justify-center gap-2 border border-border/50">
+               <Trophy className="w-4 h-4 text-primary" />
+               <span className="text-xs font-medium">
+                  Est. Winner Prize: <span className="font-bold text-primary">{winnerPrize} CELO</span>
                </span>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* LAND SECTION */}
-        <div className="grid grid-cols-3 gap-3 mb-8 w-full">
+        <Separator className="bg-border/50" />
+
+        {/* LAND GRID */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
           {[1, 2, 3, 4, 5, 6].map((land) => {
             const playerAddress = tablePlayers ? (tablePlayers as any)[land] : '0x0000000000000000000000000000000000000000'
             const isOccupied = playerAddress !== '0x0000000000000000000000000000000000000000'
             const isUser = address && playerAddress.toLowerCase() === address.toLowerCase()
 
             return (
-              <button
+              <Card
                 key={land}
-                onClick={() => !isOccupied && handleJoinGame(land)}
-                disabled={!isConnected || isPending || isConfirming || !!isOccupied}
                 className={`
-                  relative aspect-[4/5] rounded-2xl flex flex-col items-center justify-center
-                  transition-all duration-200 border-2
+                  relative aspect-[4/5] flex flex-col items-center justify-center p-2
+                  transition-all duration-200 cursor-pointer group
                   ${!isOccupied
-                    ? 'bg-[#111827] border-white/5 hover:border-[#FFD700]/40 active:scale-95'
+                    ? 'hover:border-primary/50 bg-card/30'
                     : isUser
-                      ? 'bg-[#111827] border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.05)]'
-                      : 'bg-[#111827]/40 border-white/5 opacity-80'}
+                      ? 'border-primary ring-1 ring-primary/20 bg-card'
+                      : 'opacity-60 bg-muted/20'}
                 `}
+                onClick={() => !isOccupied && handleJoinGame(land)}
               >
-                <div className={`w-10 h-10 rounded-full mb-3 flex items-center justify-center text-sm font-bold ${
+                <div className={`w-8 h-8 rounded-full mb-2 flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-110 ${
                     isOccupied
-                        ? (isUser ? 'bg-[#FFD700] text-black' : 'bg-slate-800 text-slate-400')
-                        : 'bg-slate-800/50 text-[#FFD700]'
+                        ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
+                        : 'bg-secondary/50 text-primary'
                 }`}>
                    {land}
                 </div>
-                <span className="text-[10px] font-bold uppercase mb-1 text-slate-300">
-                   LAND {land}
-                </span>
+                <span className="text-[9px] font-bold uppercase text-muted-foreground mb-1">Land</span>
                 {isOccupied ? (
-                   <span className="text-[8px] font-mono text-slate-500">
-                      {isUser ? 'YOU' : `${playerAddress.slice(0, 6)}...${playerAddress.slice(-4)}`}
-                   </span>
+                   <div className="flex flex-col items-center gap-1">
+                     {isUser && <Badge className="text-[8px] h-4 px-1 bg-primary text-primary-foreground">YOU</Badge>}
+                     <span className="text-[8px] font-mono text-foreground/70">
+                        {isUser ? '' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-2)}`}
+                     </span>
+                   </div>
                 ) : (
-                   <span className="text-[8px] font-bold text-emerald-500 uppercase">Free</span>
+                   <Badge variant="outline" className="text-[8px] h-4 px-1 text-emerald-500 border-emerald-500/20 bg-emerald-500/5">FREE</Badge>
                 )}
 
                 {isConfirming && !isOccupied && (
-                   <div className="absolute inset-0 bg-[#0a0a0a]/60 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-[#FFD700] border-t-transparent rounded-full animate-spin"></div>
+                   <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] rounded-lg flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                    </div>
                 )}
-              </button>
+              </Card>
             )
           })}
         </div>
 
-        {/* BOTTOM SECTION */}
-        <div className="w-full space-y-6">
-          {/* Table Selection */}
-          <div className="flex gap-2 w-full">
-            {Object.keys(TABLE_TYPES).map((table) => (
-              <button
+        {/* TABLE SELECTION */}
+        <div className="flex gap-3">
+          {Object.keys(TABLE_TYPES).map((table) => {
+            const isActive = selectedTable === table
+            return (
+              <Button
                 key={table}
+                variant={isActive ? "default" : "outline"}
                 onClick={() => setSelectedTable(table)}
-                className={`flex-1 py-3.5 rounded-xl font-bold transition-all text-xs border ${
-                  selectedTable === table
-                  ? 'bg-[#FFD700] text-black border-[#FFD700] shadow-[0_4px_12px_rgba(255,215,0,0.2)]'
-                  : 'bg-[#111827] text-slate-400 border-white/5 hover:bg-slate-800'
+                className={`flex-1 h-12 font-bold transition-all ${
+                  isActive ? "shadow-lg shadow-primary/20" : "text-muted-foreground"
                 }`}
               >
                 {(TABLE_COSTS as any)[(TABLE_TYPES as any)[table]]} CELO
-              </button>
-            ))}
-          </div>
+              </Button>
+            )
+          })}
+        </div>
 
-          {/* Status Message */}
-          <div className="text-center py-2 h-10 flex items-center justify-center">
-             {userLand > 0 ? (
-                <p className="text-sm font-medium text-slate-300">
-                   You're in land <span className="text-[#FFD700] font-bold">#{userLand}</span> — waiting for <span className="text-[#FFD700] font-bold">{6 - seatsFilled}</span> more
-                </p>
-             ) : (
-                <p className="text-sm font-medium text-slate-400">Select a land to join the voyage</p>
-             )}
-          </div>
+        {/* STATUS MESSAGE */}
+        <div className="text-center h-6 flex items-center justify-center">
+           {userLand > 0 ? (
+              <p className="text-xs font-medium text-muted-foreground">
+                 You're in land <span className="text-primary font-bold">#{userLand}</span> — waiting for <span className="text-primary font-bold">{6 - seatsFilled}</span> more
+              </p>
+           ) : (
+              <p className="text-xs font-medium text-muted-foreground/60 flex gap-1.5 items-center">
+                <MapPin className="w-3 h-3" /> Select a land to join the voyage
+              </p>
+           )}
+        </div>
 
-          {/* Recent Winners */}
-          <div className="bg-[#111827] border border-white/5 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Recent Rounds</span>
-              <ChevronDown className="w-4 h-4 text-slate-500" />
+        {/* RECENT WINNERS */}
+        <Card className="border-border/50 bg-card/30">
+          <CardHeader className="py-4 px-6 border-b border-border/50">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Recent Winners</CardTitle>
+              <Activity className="w-3 h-3 text-muted-foreground/50" />
             </div>
-            <div className="divide-y divide-white/5">
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border/50">
               {recentWinners.length > 0 ? (
                 recentWinners.map((winner, i) => (
-                  <div key={i} className="px-5 py-3.5 flex items-center justify-between hover:bg-white/5 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold bg-[#FFD700]/10 text-[#FFD700]`}>
-                        {winner.land}
+                  <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center border border-border/50">
+                        <User className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <div>
-                        <span className="text-xs font-mono text-slate-300">{winner.address.slice(0, 10)}...</span>
-                        <span className="text-[10px] block text-slate-500">{winner.tableType} Table • Round #{winner.roundId}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono font-bold">{winner.address.slice(0, 6)}...{winner.address.slice(-4)}</span>
+                          <Badge variant="outline" className="text-[8px] px-1 py-0 border-primary/20 text-primary">{winner.tableType}</Badge>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground block mt-0.5">Won at Land #{winner.land} • Round #{winner.roundId}</span>
                       </div>
                     </div>
                     <div className="text-right">
-                       <span className="text-xs font-bold text-[#FFD700]">+{winner.amount} CELO</span>
+                       <span className="text-sm font-black text-primary">+{winner.amount} CELO</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="px-5 py-8 text-center text-slate-500 text-xs italic">
-                   Waiting for more treasures to be found...
+                <div className="p-10 text-center text-muted-foreground text-xs italic">
+                   The island is quiet... for now.
                 </div>
               )}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Footer Links */}
-          <div className="flex justify-center gap-6 pt-2">
-             <Link href="/leaderboard" className="text-[10px] font-bold text-slate-500 hover:text-[#FFD700] transition-colors uppercase tracking-widest">Leaderboard</Link>
-             <Link href="/profile" className="text-[10px] font-bold text-slate-500 hover:text-[#FFD700] transition-colors uppercase tracking-widest">Profile</Link>
-             <Link href="/api" className="text-[10px] font-bold text-slate-500 hover:text-[#FFD700] transition-colors uppercase tracking-widest">Play Frame</Link>
+        {/* FOOTER */}
+        <footer className="flex flex-col items-center gap-6 pt-4 pb-8">
+          <div className="flex justify-center gap-8">
+             <Link href="/leaderboard" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">Leaderboard</Link>
+             <Link href="/profile" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">Profile</Link>
+             <Link href="/api" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">Play Frame</Link>
           </div>
-        </div>
+          <p className="text-[8px] text-muted-foreground/40 uppercase tracking-[0.3em]">Built on Celo</p>
+        </footer>
       </div>
     </main>
   )
