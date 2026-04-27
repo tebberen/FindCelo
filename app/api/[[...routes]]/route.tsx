@@ -2,9 +2,9 @@
 
 import { Button, Frog } from 'frog'
 import { handle } from 'frog/next'
-import { parseEther, createPublicClient, http, formatEther } from 'viem'
-import { celo } from 'viem/chains'
+import { parseEther } from 'viem'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI, TABLE_TYPES, TABLE_COSTS } from '@/src/constants'
+import { getLatestWinner } from '@/src/lib/game'
 
 const app = new Frog({
   basePath: '/api',
@@ -17,11 +17,6 @@ const app = new Frog({
       }
     }
   }
-})
-
-const publicClient = createPublicClient({
-    chain: celo,
-    transport: http()
 })
 
 const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
@@ -39,21 +34,10 @@ app.frame('/', async (c) => {
   let latestWinner = 'None yet'
   let latestPrize = '0'
 
-  try {
-    const logs = await publicClient.getLogs({
-        address: CONTRACT_ADDRESS as `0x${string}`,
-        event: FIND_CELO_ABI.find((x: any) => x.name === 'TableFilled') as any,
-        fromBlock: 'latest',
-        strict: true,
-    })
-
-    if (logs.length > 0) {
-        const lastLog = logs[logs.length - 1] as any
-        latestWinner = lastLog.args.winner
-        latestPrize = formatEther(lastLog.args.prize)
-    }
-  } catch (e) {
-    console.error('Error fetching logs:', e)
+  const winnerData = await getLatestWinner()
+  if (winnerData) {
+    latestWinner = winnerData.address
+    latestPrize = winnerData.prize
   }
 
   return c.res({
