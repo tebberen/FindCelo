@@ -106,8 +106,15 @@ export default function Home() {
   const userLand = playersList.findIndex((p: string) => p.toLowerCase() === address?.toLowerCase()) + 1
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background text-foreground p-4 md:p-8 font-sans selection:bg-primary/30">
-      <div className="w-full max-w-2xl space-y-8">
+    <main className="flex min-h-screen flex-col items-center bg-background text-foreground p-4 md:p-8 font-sans selection:bg-primary/30 relative overflow-x-hidden">
+      {/* BACKGROUND IMAGE */}
+      <div
+        className="fixed inset-0 z-[-1] bg-[url('/images/background.png')] bg-cover bg-center bg-no-repeat"
+        aria-hidden="true"
+      />
+      <div className="fixed inset-0 z-[-1] bg-black/20" aria-hidden="true" />
+
+      <div className="w-full max-w-2xl space-y-8 relative z-10">
 
         {/* TOP SECTION */}
         <div className="flex justify-between items-center">
@@ -122,13 +129,8 @@ export default function Home() {
           <ConnectButton accountStatus="avatar" chainStatus="icon" showBalance={false} />
         </div>
 
-        {/* HEADER SECTION */}
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-primary flex flex-col items-center">
-            <span>🪎 FINDCELO</span>
-            <span>🏝️ Treasure Island</span>
-          </h1>
-        </div>
+        {/* HEADER SECTION - REMOVED TEXT TITLES AS THEY ARE IN BACKGROUND IMAGE */}
+        <div className="h-12" />
 
         {/* TABLE SELECTION */}
         <div className="flex gap-3">
@@ -139,8 +141,8 @@ export default function Home() {
                 key={table}
                 variant={isActive ? "default" : "outline"}
                 onClick={() => setSelectedTable(table)}
-                className={`flex-1 h-12 font-bold transition-all border-2 ${
-                  isActive ? "shadow-lg shadow-primary/20" : "text-muted-foreground"
+                className={`flex-1 h-12 font-bold transition-all border-2 backdrop-blur-md ${
+                  isActive ? "shadow-lg shadow-primary/20 bg-primary/80" : "text-muted-foreground bg-card/40"
                 }`}
               >
                 {(TABLE_COSTS as any)[(TABLE_TYPES as any)[table]]} CELO
@@ -150,7 +152,7 @@ export default function Home() {
         </div>
 
         {/* POT CARD */}
-        <Card className="border-border bg-card/50 backdrop-blur-sm overflow-hidden relative border-2">
+        <Card className="border-border bg-card/60 backdrop-blur-md overflow-hidden relative border-2">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
@@ -213,10 +215,10 @@ export default function Home() {
                         ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
                         : 'bg-secondary/50'
                 }`}>
-                   {isOccupied ? '🚩' : '🟫'}
+                   {isOccupied ? '🚩' : '⛺'}
                 </div>
                 <span className="text-[10px] font-bold uppercase text-primary mb-1">
-                  {isOccupied ? '🚩' : '🟫'} {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
+                  {isOccupied ? '🚩' : '⛺'} {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
                 </span>
 
                 {isConfirming && !isOccupied && (
@@ -243,7 +245,7 @@ export default function Home() {
         </div>
 
         {/* RECENT WINNERS */}
-        <Card className="border-border/50 bg-card/30 border-2">
+        <Card className="border-border/50 bg-card/60 backdrop-blur-md border-2">
           <CardHeader className="py-4 px-6 border-b border-border/50">
             <div className="flex justify-between items-center">
               <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">👑 Recent Winners</CardTitle>

@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Accept, Content-Type',
+        'Access-Control-Allow-Headers': 'Accept, Content-Type, Authorization, X-Requested-With',
       },
     })
   }
@@ -31,7 +31,7 @@ export function middleware(request: NextRequest) {
   // Add CORS headers to all responses
   response.headers.set('Access-Control-Allow-Origin', '*')
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  response.headers.set('Access-Control-Allow-Headers', 'Accept, Content-Type')
+  response.headers.set('Access-Control-Allow-Headers', 'Accept, Content-Type, Authorization, X-Requested-With')
 
   // Existing logic for Link header on the main page
   if (request.nextUrl.pathname === '/') {
