@@ -107,16 +107,17 @@ export default function Home() {
 
   return (
     <main
-      className="flex min-h-screen flex-col items-center text-foreground p-4 md:p-8 font-sans selection:bg-primary/30 relative overflow-x-hidden"
-      style={{
-        backgroundImage: "url('/images/background.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        minHeight: '100vh',
-      }}
+      className="flex min-h-screen items-center justify-center bg-neutral-950 text-foreground p-4 font-sans selection:bg-primary/30 relative overflow-x-hidden"
     >
-      <div className="w-full max-w-2xl space-y-8 relative z-10">
+      <div
+        className="w-full max-w-lg space-y-8 relative z-10 rounded-3xl p-6 md:p-8 overflow-hidden"
+        style={{
+          backgroundImage: "url('/images/background.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
 
         {/* TOP SECTION */}
         <div className="flex justify-between items-center">
