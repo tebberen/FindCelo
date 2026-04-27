@@ -6,8 +6,8 @@ import { Providers } from '@/components/Providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: '🪎 FINDCELO - 🏝️ Treasure Island',
-  description: 'A treasure island game on Celo blockchain',
+  title: '🪮 FINDCELO - 🏝️ Treasure Island',
+  description: 'A game on Celo blockchain',
 }
 
 export default function RootLayout({

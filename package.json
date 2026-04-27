@@ -1,7 +1,7 @@
 {
   "name": "find-celo",
   "version": "1.0.0",
-  "description": "🪎 FINDCELO - 🏝️ Treasure Island",
+  "description": "🪮 FINDCELO - 🏝️ Treasure Island",
   "main": "index.js",
   "scripts": {
     "dev": "next dev",

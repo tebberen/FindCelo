@@ -106,14 +106,16 @@ export default function Home() {
   const userLand = playersList.findIndex((p: string) => p.toLowerCase() === address?.toLowerCase()) + 1
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background text-foreground p-4 md:p-8 font-sans selection:bg-primary/30 relative overflow-x-hidden">
-      {/* BACKGROUND IMAGE */}
-      <div
-        className="fixed inset-0 z-[-1] bg-[url('/images/background.png')] bg-cover bg-center bg-no-repeat"
-        aria-hidden="true"
-      />
-      <div className="fixed inset-0 z-[-1] bg-black/20" aria-hidden="true" />
-
+    <main
+      className="flex min-h-screen flex-col items-center text-foreground p-4 md:p-8 font-sans selection:bg-primary/30 relative overflow-x-hidden"
+      style={{
+        backgroundImage: "url('/images/background.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh',
+      }}
+    >
       <div className="w-full max-w-2xl space-y-8 relative z-10">
 
         {/* TOP SECTION */}
