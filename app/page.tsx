@@ -4,15 +4,12 @@ import { useState, useEffect, useMemo } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
-import { Trophy, Coins, ChevronDown, Activity, User, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI, TABLE_TYPES, TABLE_COSTS } from '@/src/constants'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-
-const LAND_EMOJIS = ['🗿', '🏺', '⚱️', '🧭', '💎', '👑']
 
 export default function Home() {
   const { isConnected, address } = useAccount()
@@ -116,7 +113,7 @@ export default function Home() {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold">
-              🔥 Live
+              Live
             </Badge>
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Round #{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
@@ -128,10 +125,10 @@ export default function Home() {
         {/* HEADER SECTION */}
         <div className="text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-primary">
-            🏝️ FINDCELO
+            🏝️ Treasure Island
           </h1>
           <p className="text-muted-foreground text-sm font-medium uppercase tracking-[0.2em]">
-            Treasure Island
+            FindCelo
           </p>
         </div>
 
@@ -143,7 +140,7 @@ export default function Home() {
               <div className="space-y-1">
                 <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Current Pot 💰</CardDescription>
                 <div className="flex items-center gap-2">
-                  <Coins className="w-6 h-6 text-primary" />
+                  <span className="text-2xl">💰</span>
                   <span className="text-4xl font-black">{potSize} <span className="text-sm font-bold text-muted-foreground">CELO</span></span>
                 </div>
               </div>
@@ -163,7 +160,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="bg-muted/50 rounded-xl p-3 flex items-center justify-center gap-2 border border-border/50">
-               <Trophy className="w-4 h-4 text-primary" />
+               <span className="text-sm">👑</span>
                <span className="text-xs font-medium">
                   Est. Winner Prize: <span className="font-bold text-primary">{winnerPrize} CELO</span>
                </span>
@@ -199,19 +196,11 @@ export default function Home() {
                         ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
                         : 'bg-secondary/50'
                 }`}>
-                   {LAND_EMOJIS[land - 1]}
+                   {isOccupied ? '🚩' : '🟫'}
                 </div>
-                <span className="text-[10px] font-bold uppercase text-primary mb-1">#{land}</span>
-                {isOccupied ? (
-                   <div className="flex flex-col items-center gap-1">
-                     {isUser ? <Badge className="text-[8px] h-4 px-1 bg-primary text-primary-foreground">⚔️ YOU</Badge> : <Badge variant="secondary" className="text-[8px] h-4 px-1">TAKEN</Badge>}
-                     <span className="text-[8px] font-mono text-foreground/70">
-                        {isUser ? '' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-2)}`}
-                     </span>
-                   </div>
-                ) : (
-                   <Badge variant="outline" className="text-[8px] h-4 px-1 text-emerald-500 border-emerald-500/20 bg-emerald-500/5">🏝️ FREE</Badge>
-                )}
+                <span className="text-[10px] font-bold uppercase text-primary mb-1">
+                  {isOccupied ? '🚩' : '🟫'} {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
+                </span>
 
                 {isConfirming && !isOccupied && (
                    <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] rounded-lg flex items-center justify-center">
@@ -250,7 +239,7 @@ export default function Home() {
               </p>
            ) : (
               <p className="text-xs font-medium text-muted-foreground/60 flex gap-1.5 items-center">
-                <MapPin className="w-3 h-3" /> Select a land to join the voyage
+                Select a land to join the voyage
               </p>
            )}
         </div>
@@ -259,8 +248,7 @@ export default function Home() {
         <Card className="border-border/50 bg-card/30 border-2">
           <CardHeader className="py-4 px-6 border-b border-border/50">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">📜 Recent Winners</CardTitle>
-              <Activity className="w-3 h-3 text-muted-foreground/50" />
+              <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">👑 Recent Winners</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -269,9 +257,6 @@ export default function Home() {
                 recentWinners.map((winner, i) => (
                   <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center border border-border/50">
-                        <User className="w-5 h-5 text-muted-foreground" />
-                      </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono font-bold">{winner.address.slice(0, 6)}...{winner.address.slice(-4)}</span>
@@ -297,9 +282,9 @@ export default function Home() {
         {/* FOOTER */}
         <footer className="flex flex-col items-center gap-6 pt-4 pb-8">
           <div className="flex justify-center gap-8">
-             <Link href="/leaderboard" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">🗺️ Leaderboard</Link>
-             <Link href="/profile" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">⚔️ Profile</Link>
-             <Link href="/api" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">🧭 Play Frame</Link>
+             <Link href="/leaderboard" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">Leaderboard</Link>
+             <Link href="/profile" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">Profile</Link>
+             <Link href="/api" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">Play Frame</Link>
           </div>
           <p className="text-[8px] text-muted-foreground/40 uppercase tracking-[0.3em]">Built on Celo</p>
         </footer>

@@ -73,7 +73,7 @@ app.frame('/', async (c) => {
         padding: 40,
         backgroundImage: 'linear-gradient(to bottom, #fbbf24, #f59e0b)',
       }}>
-        <span style={{ fontSize: 80 }}>🏝️ FindCelo 🏝️</span>
+        <span style={{ fontSize: 80 }}>🏝️ Treasure Island</span>
         <span style={{ fontSize: 30, marginTop: 20 }}>Find the hidden treasure on Celo!</span>
 
         {latestWinner !== 'None yet' && (
@@ -86,7 +86,7 @@ app.frame('/', async (c) => {
                 flexDirection: 'column',
                 fontSize: 25
             }}>
-                <span style={{ color: '#c2410c' }}>🏆 LATEST WINNER 🏆</span>
+                <span style={{ color: '#c2410c' }}>👑 LATEST WINNER 👑</span>
                 <span>{latestWinner.slice(0,6)}...{latestWinner.slice(-4)} won {latestPrize} CELO</span>
             </div>
         )}
@@ -152,7 +152,7 @@ const landSelectionFrame = (tableType: string) => (c: any) => {
       <Button action={`/join/${tableType}/1?ref=${ref}`}>1</Button>,
       <Button action={`/join/${tableType}/2?ref=${ref}`}>2</Button>,
       <Button action={`/join/${tableType}/3?ref=${ref}`}>3</Button>,
-      <Button action={`/lands2/${tableType}?ref=${ref}`}>Next 👉</Button>,
+      <Button action={`/lands2/${tableType}?ref=${ref}`}>Next</Button>,
     ]
   })
 }
@@ -186,7 +186,7 @@ const landSelectionFrame2 = (tableType: string) => (c: any) => {
         <Button action={`/join/${tableType}/4?ref=${ref}`}>4</Button>,
         <Button action={`/join/${tableType}/5?ref=${ref}`}>5</Button>,
         <Button action={`/join/${tableType}/6?ref=${ref}`}>6</Button>,
-        <Button action={`/lands/${tableType}?ref=${ref}`}>👈 Back</Button>,
+        <Button action={`/lands/${tableType}?ref=${ref}`}>Back</Button>,
       ]
     })
   }
