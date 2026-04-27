@@ -124,8 +124,9 @@ export default function Home() {
 
         {/* HEADER SECTION */}
         <div className="text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-primary">
-            🏝️ FindCelo Treasure Island
+          <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-primary flex flex-col items-center">
+            <span>🪎 FINDCELO</span>
+            <span>🏝️ Treasure Island</span>
           </h1>
         </div>
 
