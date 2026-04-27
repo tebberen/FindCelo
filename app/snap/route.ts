@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
                 },
                 "header": {
                     "type": "text",
-                    "props": { "content": "🪎 FINDCELO - 🏝️ Treasure Island", "weight": "bold", "align": "center", "size": "md" }
+                    "props": { "content": "🏝️ Treasure Island", "weight": "bold", "align": "center", "size": "md" }
                 },
                 "pot-card": {
                     "type": "item",

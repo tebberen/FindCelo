@@ -8,7 +8,7 @@ import { getLatestWinner } from '@/src/lib/game'
 
 const app = new Frog({
   basePath: '/api',
-  title: '🪎 FINDCELO - 🏝️ Treasure Island',
+  title: '💎 FINDCELO - 🏝️ Treasure Island',
   hub: {
     apiUrl: "https://hubs.airstack.xyz",
     fetchOptions: {
@@ -58,8 +58,7 @@ app.frame('/', async (c) => {
         backgroundImage: 'linear-gradient(to bottom, #fbbf24, #f59e0b)',
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <span style={{ fontSize: 70 }}>🪎 FINDCELO</span>
-          <span style={{ fontSize: 50 }}>🏝️ Treasure Island</span>
+          <span style={{ fontSize: 70 }}>🏝️ Treasure Island</span>
         </div>
         <span style={{ fontSize: 30, marginTop: 20 }}>Find the hidden treasure on Celo!</span>
 
