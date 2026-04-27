@@ -1,4 +1,4 @@
-# FindCelo 🏝️
+# 🪎 FINDCELO - 🏝️ Treasure Island
 
 **Treasure Island Game on Celo Blockchain**
 

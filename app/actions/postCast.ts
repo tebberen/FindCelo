@@ -7,7 +7,7 @@ export async function postWinnerCast(winner: string, prize: string, tableType: s
     return
   }
 
-  const message = `🏝️ We have a winner on FindCelo! 🏝️\n\nExplorer ${winner.slice(0, 6)}...${winner.slice(-4)} found the treasure on the ${tableType} table and won ${prize} CELO! 🏆\n\nPlay now: ${process.env.NEXT_PUBLIC_URL}`
+  const message = `🪎 We have a winner on FINDCELO! 🏝️\n\nExplorer ${winner.slice(0, 6)}...${winner.slice(-4)} found the treasure on the ${tableType} table and won ${prize} CELO! 🏆\n\nPlay now: ${process.env.NEXT_PUBLIC_URL}`
 
   try {
     const response = await fetch('https://api.neynar.com/v2/farcaster/cast', {
