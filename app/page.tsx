@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
+const LAND_EMOJIS = ['🗿', '🏺', '⚱️', '🧭', '💎', '👑']
+
 export default function Home() {
   const { isConnected, address } = useAccount()
   const [selectedTable, setSelectedTable] = useState('BRONZE')
@@ -114,8 +116,7 @@ export default function Home() {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold">
-              <Activity className="w-3 h-3" />
-              Live
+              🔥 Live
             </Badge>
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Round #{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
@@ -127,7 +128,7 @@ export default function Home() {
         {/* HEADER SECTION */}
         <div className="text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-primary">
-            FINDCELO
+            🏝️ FINDCELO
           </h1>
           <p className="text-muted-foreground text-sm font-medium uppercase tracking-[0.2em]">
             Treasure Island
@@ -135,12 +136,12 @@ export default function Home() {
         </div>
 
         {/* POT CARD */}
-        <Card className="border-border bg-card/50 backdrop-blur-sm overflow-hidden relative">
+        <Card className="border-border bg-card/50 backdrop-blur-sm overflow-hidden relative border-2">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Current Pot</CardDescription>
+                <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Current Pot 💰</CardDescription>
                 <div className="flex items-center gap-2">
                   <Coins className="w-6 h-6 text-primary" />
                   <span className="text-4xl font-black">{potSize} <span className="text-sm font-bold text-muted-foreground">CELO</span></span>
@@ -184,7 +185,7 @@ export default function Home() {
                 key={land}
                 className={`
                   relative aspect-[4/5] flex flex-col items-center justify-center p-2
-                  transition-all duration-200 cursor-pointer group
+                  transition-all duration-200 cursor-pointer group border-2
                   ${!isOccupied
                     ? 'hover:border-primary/50 bg-card/30'
                     : isUser
@@ -193,23 +194,23 @@ export default function Home() {
                 `}
                 onClick={() => !isOccupied && handleJoinGame(land)}
               >
-                <div className={`w-8 h-8 rounded-full mb-2 flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-110 ${
+                <div className={`w-10 h-10 rounded-full mb-2 flex items-center justify-center text-xl transition-transform group-hover:scale-110 ${
                     isOccupied
                         ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
-                        : 'bg-secondary/50 text-primary'
+                        : 'bg-secondary/50'
                 }`}>
-                   {land}
+                   {LAND_EMOJIS[land - 1]}
                 </div>
-                <span className="text-[9px] font-bold uppercase text-muted-foreground mb-1">Land</span>
+                <span className="text-[10px] font-bold uppercase text-primary mb-1">#{land}</span>
                 {isOccupied ? (
                    <div className="flex flex-col items-center gap-1">
-                     {isUser && <Badge className="text-[8px] h-4 px-1 bg-primary text-primary-foreground">YOU</Badge>}
+                     {isUser ? <Badge className="text-[8px] h-4 px-1 bg-primary text-primary-foreground">⚔️ YOU</Badge> : <Badge variant="secondary" className="text-[8px] h-4 px-1">TAKEN</Badge>}
                      <span className="text-[8px] font-mono text-foreground/70">
                         {isUser ? '' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-2)}`}
                      </span>
                    </div>
                 ) : (
-                   <Badge variant="outline" className="text-[8px] h-4 px-1 text-emerald-500 border-emerald-500/20 bg-emerald-500/5">FREE</Badge>
+                   <Badge variant="outline" className="text-[8px] h-4 px-1 text-emerald-500 border-emerald-500/20 bg-emerald-500/5">🏝️ FREE</Badge>
                 )}
 
                 {isConfirming && !isOccupied && (
@@ -231,7 +232,7 @@ export default function Home() {
                 key={table}
                 variant={isActive ? "default" : "outline"}
                 onClick={() => setSelectedTable(table)}
-                className={`flex-1 h-12 font-bold transition-all ${
+                className={`flex-1 h-12 font-bold transition-all border-2 ${
                   isActive ? "shadow-lg shadow-primary/20" : "text-muted-foreground"
                 }`}
               >
@@ -255,10 +256,10 @@ export default function Home() {
         </div>
 
         {/* RECENT WINNERS */}
-        <Card className="border-border/50 bg-card/30">
+        <Card className="border-border/50 bg-card/30 border-2">
           <CardHeader className="py-4 px-6 border-b border-border/50">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Recent Winners</CardTitle>
+              <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">📜 Recent Winners</CardTitle>
               <Activity className="w-3 h-3 text-muted-foreground/50" />
             </div>
           </CardHeader>
@@ -296,9 +297,9 @@ export default function Home() {
         {/* FOOTER */}
         <footer className="flex flex-col items-center gap-6 pt-4 pb-8">
           <div className="flex justify-center gap-8">
-             <Link href="/leaderboard" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">Leaderboard</Link>
-             <Link href="/profile" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">Profile</Link>
-             <Link href="/api" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">Play Frame</Link>
+             <Link href="/leaderboard" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">🗺️ Leaderboard</Link>
+             <Link href="/profile" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">⚔️ Profile</Link>
+             <Link href="/api" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">🧭 Play Frame</Link>
           </div>
           <p className="text-[8px] text-muted-foreground/40 uppercase tracking-[0.3em]">Built on Celo</p>
         </footer>
