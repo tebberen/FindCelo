@@ -3,7 +3,7 @@
 import { useReadContract } from 'wagmi'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI } from '@/src/constants'
 import Link from 'next/link'
-import { ArrowLeft, Trophy, Crown, Anchor, Compass } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 export default function Leaderboard() {
   const { data: leaderboard, isLoading } = useReadContract({
@@ -21,7 +21,7 @@ export default function Leaderboard() {
 
             <div className="text-center space-y-2">
               <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-primary flex items-center justify-center gap-4">
-                  <span className="text-5xl">🗺️</span> Global Hall of Fame
+                  Global Hall of Fame
               </h1>
               <p className="text-muted-foreground font-bold uppercase tracking-[0.3em] text-xs">The Greatest Explorers of FindCelo</p>
             </div>
@@ -40,7 +40,6 @@ export default function Leaderboard() {
                             <tr>
                                 <td colSpan={3} className="px-8 py-20 text-center">
                                   <div className="flex flex-col items-center gap-4">
-                                    <span className="text-5xl animate-spin-slow">🧭</span>
                                     <span className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Consulting the maps...</span>
                                   </div>
                                 </td>
@@ -55,7 +54,7 @@ export default function Leaderboard() {
                                               index === 1 ? 'bg-muted text-muted-foreground' :
                                               index === 2 ? 'bg-amber-700/50 text-white' : 'bg-muted/50 text-muted-foreground'}
                                         `}>
-                                            {index === 0 ? <Crown size={16} /> : index + 1}
+                                            {index === 0 ? '👑' : index + 1}
                                         </div>
                                     </td>
                                     <td className="px-8 py-5">
@@ -77,7 +76,6 @@ export default function Leaderboard() {
                             <tr>
                                 <td colSpan={3} className="px-8 py-20 text-center">
                                   <div className="flex flex-col items-center gap-4 opacity-30">
-                                    <span className="text-5xl">⚓</span>
                                     <span className="text-muted-foreground font-bold uppercase tracking-widest text-xs">The island is empty... for now.</span>
                                   </div>
                                 </td>

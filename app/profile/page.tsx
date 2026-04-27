@@ -4,7 +4,7 @@ import { useAccount, useReadContract } from 'wagmi'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI } from '@/src/constants'
 import { formatEther } from 'viem'
 import Link from 'next/link'
-import { ArrowLeft, Copy, Share2, Shield, Sword, Anchor, Coins, Trophy } from 'lucide-react'
+import { ArrowLeft, Copy } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Profile() {
@@ -33,7 +33,6 @@ export default function Profile() {
   if (!isConnected) {
     return (
         <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-background text-foreground font-sans text-center">
-            <Shield className="w-20 h-20 text-muted mb-8" />
             <h1 className="text-3xl font-black mb-4 uppercase tracking-tighter">Your stats are locked</h1>
             <p className="text-muted-foreground mb-8 max-w-xs">Connect your captain's wallet to reveal your journey's progress.</p>
             <Link href="/" className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-transform">
@@ -52,10 +51,6 @@ export default function Profile() {
 
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-border">
               <div className="flex items-center gap-6">
-                <div className="w-20 h-20 rounded-3xl bg-card border-2 border-primary/30 flex items-center justify-center relative overflow-hidden">
-                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent"></div>
-                   <span className="text-4xl relative z-10">📜</span>
-                </div>
                 <div>
                   <h1 className="text-4xl font-black italic tracking-tighter text-primary">Captain's Log</h1>
                   <p className="font-mono text-xs text-muted-foreground">{address}</p>
@@ -69,7 +64,6 @@ export default function Profile() {
 
             {isLoading ? (
                 <div className="flex justify-center py-20 text-4xl">
-                  🧭
                 </div>
             ) : profile ? (
                 <div className="space-y-8">
@@ -97,20 +91,15 @@ export default function Profile() {
                               </p>
                             ) : (
                               <div className="flex flex-col items-center gap-1">
-                                <span className="text-3xl">📦</span>
-                                <span className="text-[8px] font-bold text-muted-foreground animate-pulse uppercase">Click to open</span>
+                                <span className="text-[8px] font-bold text-muted-foreground animate-pulse uppercase">Click to reveal</span>
                               </div>
                             )}
                         </div>
                     </div>
 
                     <div className="bg-card/80 rounded-[32px] p-8 border-2 border-border backdrop-blur-xl relative overflow-hidden">
-                        <div className="absolute -right-20 -bottom-20 opacity-[0.05] rotate-12">
-                           <Sword size={240} />
-                        </div>
-
                         <h3 className="text-xl font-black italic tracking-tighter mb-6 flex items-center gap-3">
-                            <Share2 className="text-primary" size={24} /> RECRUIT NEW VOYAGERS
+                            RECRUIT NEW VOYAGERS
                         </h3>
 
                         <div className="space-y-4 relative z-10">
@@ -135,14 +124,14 @@ export default function Profile() {
                     <div className="bg-card p-8 rounded-[32px] border-2 border-border text-center">
                         <p className="text-2xl font-black italic tracking-tighter mb-2">💰 Total Treasure</p>
                         <p className="text-4xl font-black text-primary">
-                           {Number(formatEther((profile as any).totalCELOWon)).toFixed(2)} CELO 📦
+                           {Number(formatEther((profile as any).totalCELOWon)).toFixed(2)} CELO
                         </p>
                     </div>
 
                     {/* Achievements placeholder */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                        <div className="bg-card/30 p-6 rounded-2xl border-2 border-border flex items-center gap-4 opacity-50">
-                          <span className="text-3xl">🏆</span>
+                          <span className="text-3xl">👑</span>
                           <div>
                             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Sovereign Award</p>
                             <p className="text-[10px] text-muted-foreground/60">Win 10 Gold Table games</p>
@@ -159,7 +148,6 @@ export default function Profile() {
                 </div>
             ) : (
                 <div className="text-center py-20 bg-card rounded-[32px] border-2 border-dashed border-border">
-                  <span className="text-5xl block mb-6">⚔️</span>
                   <p className="text-muted-foreground font-bold uppercase tracking-widest mb-6">No profile found in the island records</p>
                   <Link href="/" className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-transform inline-block">
                       Start Your Journey
