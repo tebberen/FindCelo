@@ -125,11 +125,27 @@ export default function Home() {
         {/* HEADER SECTION */}
         <div className="text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-primary">
-            🏝️ Treasure Island
+            🏝️ FindCelo Treasure Island
           </h1>
-          <p className="text-muted-foreground text-sm font-medium uppercase tracking-[0.2em]">
-            FindCelo
-          </p>
+        </div>
+
+        {/* TABLE SELECTION */}
+        <div className="flex gap-3">
+          {Object.keys(TABLE_TYPES).map((table) => {
+            const isActive = selectedTable === table
+            return (
+              <Button
+                key={table}
+                variant={isActive ? "default" : "outline"}
+                onClick={() => setSelectedTable(table)}
+                className={`flex-1 h-12 font-bold transition-all border-2 ${
+                  isActive ? "shadow-lg shadow-primary/20" : "text-muted-foreground"
+                }`}
+              >
+                {(TABLE_COSTS as any)[(TABLE_TYPES as any)[table]]} CELO
+              </Button>
+            )
+          })}
         </div>
 
         {/* POT CARD */}
@@ -171,7 +187,7 @@ export default function Home() {
         <Separator className="bg-border/50" />
 
         {/* LAND GRID */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {[1, 2, 3, 4, 5, 6].map((land) => {
             const playerAddress = tablePlayers ? (tablePlayers as any)[land] : '0x0000000000000000000000000000000000000000'
             const isOccupied = playerAddress !== '0x0000000000000000000000000000000000000000'
@@ -208,25 +224,6 @@ export default function Home() {
                    </div>
                 )}
               </Card>
-            )
-          })}
-        </div>
-
-        {/* TABLE SELECTION */}
-        <div className="flex gap-3">
-          {Object.keys(TABLE_TYPES).map((table) => {
-            const isActive = selectedTable === table
-            return (
-              <Button
-                key={table}
-                variant={isActive ? "default" : "outline"}
-                onClick={() => setSelectedTable(table)}
-                className={`flex-1 h-12 font-bold transition-all border-2 ${
-                  isActive ? "shadow-lg shadow-primary/20" : "text-muted-foreground"
-                }`}
-              >
-                {(TABLE_COSTS as any)[(TABLE_TYPES as any)[table]]} CELO
-              </Button>
             )
           })}
         </div>
