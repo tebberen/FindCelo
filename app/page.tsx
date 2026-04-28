@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient } from 'wagmi'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient, useConnect } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import Link from 'next/link'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI, TABLE_TYPES, TABLE_COSTS } from '@/src/constants'
@@ -13,7 +13,26 @@ import { Separator } from '@/components/ui/separator'
 
 export default function Home() {
   const { isConnected, address } = useAccount()
+  const { connect, connectors } = useConnect()
   const [selectedTable, setSelectedTable] = useState('BRONZE')
+  const [isMiniPay, setIsMiniPay] = useState(false)
+
+  // Detect MiniPay
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).ethereum?.isMiniPay) {
+      setIsMiniPay(true)
+    }
+  }, [])
+
+  // Auto-connect for MiniPay
+  useEffect(() => {
+    if (isMiniPay && !isConnected && connectors.length > 0) {
+      const injectedConnector = connectors.find(c => c.id === 'injected')
+      if (injectedConnector) {
+        connect({ connector: injectedConnector })
+      }
+    }
+  }, [isMiniPay, isConnected, connect, connectors])
   const [recentWinners, setRecentWinners] = useState<any[]>([])
   const publicClient = usePublicClient()
 
@@ -124,6 +143,11 @@ export default function Home() {
             <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold">
               Live
             </Badge>
+            {isMiniPay && (
+              <Badge variant="outline" className="flex gap-1 items-center px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold border-yellow-500/50 text-yellow-500 bg-yellow-500/10">
+                MiniPay
+              </Badge>
+            )}
             <span className="text-[10px] font-bold text-white uppercase tracking-widest">
               Round #{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
             </span>
