@@ -35,3 +35,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+.land-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+}
