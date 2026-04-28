@@ -32,7 +32,7 @@ export default function Profile() {
 
   if (!isConnected) {
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-neutral-950 text-foreground font-sans text-center">
+        <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-[#0a0a0a] text-foreground font-sans text-center">
             <h1 className="text-3xl font-black mb-4 uppercase tracking-tighter">Your stats are locked</h1>
             <p className="text-muted-foreground mb-8 max-w-xs">Connect your captain's wallet to reveal your journey's progress.</p>
             <Link href="/" className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-transform">
@@ -43,8 +43,8 @@ export default function Profile() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-6 md:p-12 bg-neutral-950 text-foreground font-sans">
-        <div className="max-w-3xl w-full space-y-8">
+    <main className="flex min-h-screen flex-col items-center p-6 md:p-12 bg-[#0a0a0a] text-foreground font-sans">
+        <div className="max-w-[600px] w-full space-y-8">
             <Link href="/" className="text-muted-foreground hover:text-primary transition-colors mb-8 flex items-center gap-2 font-bold text-sm uppercase tracking-widest">
                 <ArrowLeft size={18} /> Back to Island
             </Link>
