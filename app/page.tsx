@@ -106,18 +106,17 @@ export default function Home() {
   const userLand = playersList.findIndex((p: string) => p.toLowerCase() === address?.toLowerCase()) + 1
 
   return (
-    <main
-      className="flex min-h-screen items-start justify-center text-foreground font-sans selection:bg-primary/30 relative overflow-x-hidden"
-      style={{
-        backgroundImage: "url('/images/background.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 text-foreground font-sans selection:bg-primary/30">
       <div
-        className="w-full max-w-[600px] space-y-8 relative z-10 p-6 md:p-8 mx-auto"
+        className="w-full max-w-[500px] rounded-[24px] overflow-hidden relative shadow-2xl"
+        style={{
+          backgroundImage: "url('/images/background.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
       >
+        <div className="space-y-8 p-6 md:p-8 relative z-10">
 
         {/* TOP SECTION */}
         <div className="flex justify-between items-center bg-black/40 backdrop-blur-sm p-4 rounded-xl border border-white/10">
@@ -291,6 +290,7 @@ export default function Home() {
           </div>
           <p className="text-xs font-bold text-yellow-500/60 uppercase tracking-[0.3em]">Built on Celo</p>
         </footer>
+        </div>
       </div>
     </main>
   )
