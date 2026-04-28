@@ -241,10 +241,10 @@ export default function Home() {
                         ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
                         : 'bg-secondary/50'
                 }`}>
-                   {isOccupied ? '🚩' : '⛺'}
+                   <img src="/images/treasure-chest.png" alt="Land" className="w-6 h-6" />
                 </div>
-                <span className="text-[10px] font-bold uppercase text-yellow-200 mb-1">
-                  {isOccupied ? '🚩' : '⛺'} {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
+                <span className="text-[10px] font-bold uppercase text-yellow-200 mb-1 flex items-center">
+                  <img src="/images/treasure-chest.png" alt="Land" className="land-icon" /> {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
                 </span>
 
                 {isConfirming && !isOccupied && (
