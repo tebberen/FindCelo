@@ -113,7 +113,7 @@ export default function Home() {
         className="w-full max-w-lg space-y-8 relative z-10 rounded-3xl p-6 md:p-8 overflow-hidden"
         style={{
           backgroundImage: "url('/images/background.png')",
-          backgroundSize: 'cover',
+          backgroundSize: '100% auto',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
@@ -206,10 +206,10 @@ export default function Home() {
                   relative aspect-[4/5] flex flex-col items-center justify-center p-2
                   transition-all duration-200 cursor-pointer group border-2
                   ${!isOccupied
-                    ? 'hover:border-primary/50 bg-card/30'
+                    ? 'hover:border-primary/50 bg-black/50 backdrop-blur-sm border-amber-500/30'
                     : isUser
-                      ? 'border-primary ring-1 ring-primary/20 bg-card'
-                      : 'opacity-60 bg-muted/20'}
+                      ? 'border-primary ring-1 ring-primary/20 bg-black/60 backdrop-blur-sm'
+                      : 'opacity-60 bg-black/40 backdrop-blur-sm border-white/10'}
                 `}
                 onClick={() => !isOccupied && handleJoinGame(land)}
               >
@@ -220,7 +220,7 @@ export default function Home() {
                 }`}>
                    {isOccupied ? '🚩' : '⛺'}
                 </div>
-                <span className="text-[10px] font-bold uppercase text-primary mb-1">
+                <span className="text-[10px] font-bold uppercase text-yellow-200 mb-1">
                   {isOccupied ? '🚩' : '⛺'} {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
                 </span>
 
