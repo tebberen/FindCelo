@@ -107,16 +107,16 @@ export default function Home() {
 
   return (
     <main
-      className="flex min-h-screen items-center justify-center text-foreground p-4 font-sans selection:bg-primary/30 relative overflow-x-hidden"
-      style={{
-        backgroundImage: "url('/images/background.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
+      className="flex min-h-screen items-start justify-center text-foreground p-4 font-sans selection:bg-primary/30 relative overflow-x-hidden bg-[#0a0a0a]"
     >
       <div
-        className="w-full space-y-8 relative z-10 p-6 md:p-8"
+        className="w-full max-w-[600px] space-y-8 relative z-10 p-6 md:p-8 mx-auto my-4 rounded-[2rem] overflow-hidden shadow-2xl"
+        style={{
+          backgroundImage: "url('/images/background.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
       >
 
         {/* TOP SECTION */}
