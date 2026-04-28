@@ -131,8 +131,10 @@ export default function Home() {
           <ConnectButton accountStatus="avatar" chainStatus="icon" showBalance={false} />
         </div>
 
-        {/* HEADER SECTION - REMOVED TEXT TITLES AS THEY ARE IN BACKGROUND IMAGE */}
-        <div className="h-12" />
+        {/* HEADER SECTION */}
+        <h1 className="text-center text-3xl font-bold text-[#FFD700] tracking-wider mb-4">
+          FIND CELO
+        </h1>
 
         {/* TABLE SELECTION */}
         <div className="flex gap-3">
