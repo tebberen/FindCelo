@@ -107,25 +107,25 @@ export default function Home() {
 
   return (
     <main
-      className="flex min-h-screen items-start justify-center text-foreground p-4 font-sans selection:bg-primary/30 relative overflow-x-hidden bg-[#0a0a0a]"
+      className="flex min-h-screen items-start justify-center text-foreground font-sans selection:bg-primary/30 relative overflow-x-hidden"
+      style={{
+        backgroundImage: "url('/images/background.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
     >
       <div
-        className="w-full max-w-[600px] space-y-8 relative z-10 p-6 md:p-8 mx-auto my-4 rounded-[2rem] overflow-hidden shadow-2xl"
-        style={{
-          backgroundImage: "url('/images/background.png')",
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
+        className="w-full max-w-[600px] space-y-8 relative z-10 p-6 md:p-8 mx-auto"
       >
 
         {/* TOP SECTION */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center bg-black/40 backdrop-blur-sm p-4 rounded-xl border border-white/10">
           <div className="flex items-center gap-3">
             <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold">
               Live
             </Badge>
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-white uppercase tracking-widest">
               Round #{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
             </span>
           </div>
