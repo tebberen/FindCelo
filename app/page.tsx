@@ -113,7 +113,7 @@ export default function Home() {
         className="w-full max-w-[600px] space-y-8 relative z-10 p-6 md:p-8 mx-auto my-4 rounded-[2rem] overflow-hidden shadow-2xl"
         style={{
           backgroundImage: "url('/images/background.png')",
-          backgroundSize: 'cover',
+          backgroundSize: 'contain',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
@@ -235,13 +235,13 @@ export default function Home() {
         </div>
 
         {/* STATUS MESSAGE */}
-        <div className="text-center h-6 flex items-center justify-center">
+        <div className="text-center h-auto flex items-center justify-center bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/10 shadow-xl my-4">
            {userLand > 0 ? (
-              <p className="text-xs font-medium text-muted-foreground">
-                 You're in land <span className="text-primary font-bold">#{userLand}</span> — waiting for <span className="text-primary font-bold">{6 - seatsFilled}</span> more
+              <p className="text-sm font-bold text-white">
+                 You're in land <span className="text-yellow-400 font-black">#{userLand}</span> — waiting for <span className="text-yellow-400 font-black">{6 - seatsFilled}</span> more
               </p>
            ) : (
-              <p className="text-xs font-medium text-muted-foreground/60 flex gap-1.5 items-center">
+              <p className="text-sm font-bold text-white/80 flex gap-1.5 items-center">
                 Select a land to join the voyage
               </p>
            )}
@@ -251,7 +251,7 @@ export default function Home() {
         <Card className="border-border/50 bg-card/60 backdrop-blur-md border-2">
           <CardHeader className="py-4 px-6 border-b border-border/50">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">👑 Recent Winners</CardTitle>
+              <CardTitle className="text-sm font-bold text-white uppercase tracking-widest">👑 Recent Winners</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -274,7 +274,7 @@ export default function Home() {
                   </div>
                 ))
               ) : (
-                <div className="p-10 text-center text-muted-foreground text-xs italic">
+                <div className="p-10 text-center text-white/90 text-sm italic font-medium">
                    The island is quiet... for now.
                 </div>
               )}
@@ -283,13 +283,13 @@ export default function Home() {
         </Card>
 
         {/* FOOTER */}
-        <footer className="flex flex-col items-center gap-6 pt-4 pb-8">
+        <footer className="bg-black/60 backdrop-blur-md rounded-2xl p-6 w-full border border-white/10 mt-4 flex flex-col items-center gap-6 pt-4 pb-8">
           <div className="flex justify-center gap-8">
-             <Link href="/leaderboard" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">Leaderboard</Link>
-             <Link href="/profile" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">Profile</Link>
-             <Link href="/api" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1.5">Play Frame</Link>
+             <Link href="/leaderboard" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Leaderboard</Link>
+             <Link href="/profile" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Profile</Link>
+             <Link href="/api" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Play Frame</Link>
           </div>
-          <p className="text-[8px] text-muted-foreground/40 uppercase tracking-[0.3em]">Built on Celo</p>
+          <p className="text-xs font-bold text-yellow-500/60 uppercase tracking-[0.3em]">Built on Celo</p>
         </footer>
       </div>
     </main>
