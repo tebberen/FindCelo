@@ -226,7 +226,7 @@ export default function Home() {
               <Card
                 key={land}
                 className={`
-                  relative aspect-[4/5] flex flex-col items-center justify-center p-2
+                  relative aspect-[4/5] flex flex-col items-center justify-center p-4
                   transition-all duration-200 cursor-pointer group border-2
                   ${!isOccupied
                     ? 'hover:border-primary/50 bg-black/50 backdrop-blur-sm border-amber-500/30'
@@ -236,15 +236,15 @@ export default function Home() {
                 `}
                 onClick={() => !isOccupied && handleJoinGame(land)}
               >
-                <div className={`w-10 h-10 rounded-full mb-2 flex items-center justify-center text-xl transition-transform group-hover:scale-110 ${
+                <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center text-xl transition-transform group-hover:scale-110 ${
                     isOccupied
                         ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
                         : 'bg-secondary/50'
                 }`}>
-                   <img src="/images/treasure-chest.png" alt="Land" className="w-6 h-6" />
+                   <img src="/images/treasure-chest.png" alt="Land" className="w-10 h-10" />
                 </div>
-                <span className="text-[10px] font-bold uppercase text-yellow-200 mb-1 flex items-center">
-                  <img src="/images/treasure-chest.png" alt="Land" className="land-icon" /> {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
+                <span className="text-lg font-bold uppercase text-yellow-200 mb-1 flex items-center whitespace-nowrap">
+                   {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
                 </span>
 
                 {isConfirming && !isOccupied && (
