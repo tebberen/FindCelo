@@ -151,6 +151,20 @@ export default function Home() {
             <span className="text-[10px] font-bold text-white uppercase tracking-widest">
               Round #{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
             </span>
+
+            <Button asChild variant="ghost" size="sm" className="h-7 gap-1 px-2 text-white hover:bg-white/10 border border-white/5 bg-white/5">
+              <Link href="/leaderboard">
+                <span>🏆</span>
+                <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider">Leaderboard</span>
+              </Link>
+            </Button>
+
+            <Button asChild variant="ghost" size="sm" className="h-7 gap-1 px-2 text-white hover:bg-white/10 border border-white/5 bg-white/5">
+              <Link href="/profile">
+                <span>👤</span>
+                <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider">Profile</span>
+              </Link>
+            </Button>
           </div>
           <ConnectButton accountStatus="avatar" chainStatus="icon" showBalance={false} />
         </div>
@@ -310,7 +324,6 @@ export default function Home() {
           <div className="flex justify-center gap-8">
              <Link href="/leaderboard" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Leaderboard</Link>
              <Link href="/profile" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Profile</Link>
-             <Link href="/api" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Play Frame</Link>
           </div>
           <p className="text-xs font-bold text-yellow-500/60 uppercase tracking-[0.3em]">Built on Celo</p>
         </footer>
