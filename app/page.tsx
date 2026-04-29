@@ -229,6 +229,19 @@ export default function Home() {
 
         <Separator className="bg-border/50" />
 
+        {/* STATUS MESSAGE */}
+        <div className="text-center h-auto flex items-center justify-center bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/10 shadow-xl my-4">
+           {userLand > 0 ? (
+              <p className="text-sm font-bold text-white">
+                 You're in land <span className="text-yellow-400 font-black">#{userLand}</span> — waiting for <span className="text-yellow-400 font-black">{6 - seatsFilled}</span> more
+              </p>
+           ) : (
+              <p className="text-sm font-bold text-white/80 flex gap-1.5 items-center">
+                Select a land to join the voyage
+              </p>
+           )}
+        </div>
+
         {/* LAND GRID */}
         <div className="grid grid-cols-3 gap-3">
           {[1, 2, 3, 4, 5, 6].map((land) => {
@@ -271,19 +284,6 @@ export default function Home() {
           })}
         </div>
 
-        {/* STATUS MESSAGE */}
-        <div className="text-center h-auto flex items-center justify-center bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/10 shadow-xl my-4">
-           {userLand > 0 ? (
-              <p className="text-sm font-bold text-white">
-                 You're in land <span className="text-yellow-400 font-black">#{userLand}</span> — waiting for <span className="text-yellow-400 font-black">{6 - seatsFilled}</span> more
-              </p>
-           ) : (
-              <p className="text-sm font-bold text-white/80 flex gap-1.5 items-center">
-                Select a land to join the voyage
-              </p>
-           )}
-        </div>
-
         {/* RECENT WINNERS */}
         <Card className="border-border/50 bg-card/60 backdrop-blur-md border-2">
           <CardHeader className="py-4 px-6 border-b border-border/50">
@@ -321,10 +321,6 @@ export default function Home() {
 
         {/* FOOTER */}
         <footer className="bg-black/60 backdrop-blur-md rounded-2xl p-6 w-full border border-white/10 mt-4 flex flex-col items-center gap-6 pt-4 pb-8">
-          <div className="flex justify-center gap-8">
-             <Link href="/leaderboard" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Leaderboard</Link>
-             <Link href="/profile" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Profile</Link>
-          </div>
           <p className="text-xs font-bold text-yellow-500/60 uppercase tracking-[0.3em]">Built on Celo</p>
         </footer>
         </div>
