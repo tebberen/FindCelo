@@ -170,7 +170,11 @@ export default function Home() {
         </div>
 
         {/* HEADER SECTION */}
-        <h1 className="text-center text-2xl font-bold text-[#FFD700] mb-4">FIND CELO</h1>
+        <div className="flex justify-center mb-6">
+          <h1 className="font-pirata text-5xl tracking-widest bg-black/60 backdrop-blur-md px-8 py-3 rounded-2xl text-[#FFD700] [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] border border-white/10">
+            ✦ FIND CELO ✦
+          </h1>
+        </div>
 
         {/* TABLE SELECTION */}
         <div className="flex gap-3">

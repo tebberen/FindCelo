@@ -16,6 +16,9 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        pirata: ["var(--font-pirata)"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
