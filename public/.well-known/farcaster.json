@@ -13,5 +13,10 @@
   "action": {
     "type": "frame",
     "url": "https://find-celo.vercel.app/"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjc2Mjg1OSwidHlwZSI6ImF1dGgiLCJrZXkiOiIweDkwQjI2NUVCMDhkM2NlNEQzNjQxNzdGQjNBZjcyQjhlODkwYzQyMzgifQ",
+    "payload": "eyJkb21haW4iOiJmaW5kLWNlbG8udmVyY2VsLmFwcCJ9",
+    "signature": "XfqnI4JO245YcZjsOyXA+abHAO0/zFyua/yO01T/z/5KN3o/I+t7Jqydh0CUNLIRS9oFDJnoawoo1KogIyrftxw="
   }
 }
