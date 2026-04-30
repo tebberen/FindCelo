@@ -11,15 +11,16 @@ export async function GET() {
 
   const frameResponse = {
     type: 'frame',
-    version: '1',
+    version: 'vNext',
     buttons: [
       {
-        label: 'Open FindCelo',
+        label: 'Play Now',
         action: 'link',
         target: `${baseUrl}/`,
       },
     ],
     image: `${baseUrl}/images/background.png`,
+    image_aspect_ratio: '1.91:1',
     post_url: `${baseUrl}/api/frame`,
   }
 
