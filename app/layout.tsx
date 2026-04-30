@@ -11,9 +11,12 @@ export const metadata: Metadata = {
   description: 'A game on Celo blockchain',
   other: {
     "of:accepts:xmtp": "2024-02-01",
-    "fc:frame": "1",
+    "fc:frame": "vNext",
     "fc:frame:image": "https://find-celo.vercel.app/images/background.png",
-    "fc:frame:button:1": "Play FindCelo",
+    "fc:frame:image:aspect_ratio": "1.91:1",
+    "fc:frame:button:1": "Play Now",
+    "fc:frame:button:1:action": "link",
+    "fc:frame:button:1:target": "https://find-celo.vercel.app",
     "fc:frame:post_url": "https://find-celo.vercel.app/api/frame",
   },
 }
