@@ -1,0 +1,17 @@
+{
+  "name": "FindCelo",
+  "description": "A treasure island game on Celo. Find the treasure, win CELO!",
+  "iconUrl": "https://find-celo.vercel.app/images/treasure-chest.png",
+  "imageUrl": "https://find-celo.vercel.app/images/background.png",
+  "manifestUrl": "https://find-celo.vercel.app/.well-known/farcaster.json",
+  "appUrl": "https://find-celo.vercel.app/",
+  "aboutUrl": "https://github.com/tebberen/FindCelo",
+  "developer": {
+    "name": "tebberen",
+    "url": "https://github.com/tebberen"
+  },
+  "action": {
+    "type": "frame",
+    "url": "https://find-celo.vercel.app/"
+  }
+}
