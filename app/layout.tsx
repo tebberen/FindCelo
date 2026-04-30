@@ -9,6 +9,13 @@ const pirata = Pirata_One({ subsets: ['latin'], weight: '400', variable: '--font
 export const metadata: Metadata = {
   title: '🪮 FINDCELO - 🏝️ Treasure Island',
   description: 'A game on Celo blockchain',
+  other: {
+    "of:accepts:xmtp": "2024-02-01",
+    "fc:frame": "1",
+    "fc:frame:image": "https://find-celo.vercel.app/images/background.png",
+    "fc:frame:button:1": "Play FindCelo",
+    "fc:frame:post_url": "https://find-celo.vercel.app/api/frame",
+  },
 }
 
 export default function RootLayout({
