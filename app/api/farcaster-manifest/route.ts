@@ -1,0 +1,28 @@
+import { NextResponse } from 'next/server'
+
+export async function GET() {
+  const manifest = {
+    name: "FindCelo",
+    description: "A treasure island game on Celo. Find the treasure, win CELO!",
+    iconUrl: "https://find-celo.vercel.app/images/treasure-chest.png",
+    imageUrl: "https://find-celo.vercel.app/images/background.png",
+    manifestUrl: "https://find-celo.vercel.app/.well-known/farcaster.json",
+    appUrl: "https://find-celo.vercel.app/",
+    aboutUrl: "https://github.com/tebberen/FindCelo",
+    developer: {
+      name: "tebberen",
+      url: "https://github.com/tebberen"
+    },
+    action: {
+      type: "frame",
+      url: "https://find-celo.vercel.app/"
+    },
+    accountAssociation: {
+      header: "eyJmaWQiOjc2Mjg1OSwidHlwZSI6ImF1dGgiLCJrZXkiOiIweDkwQjI2NUVCMDhkM2NlNEQzNjQxNzdGQjNBZjcyQjhlODkwYzQyMzgifQ",
+      payload: "eyJkb21haW4iOiJmaW5kLWNlbG8udmVyY2VsLmFwcCJ9",
+      signature: "XfqnI4JO245YcZjsOyXA+abHAO0/zFyua/yO01T/z/5KN3o/I+t7Jqydh0CUNLIRS9oFDJnoawoo1KogIyrftxw="
+    }
+  }
+
+  return NextResponse.json(manifest)
+}
