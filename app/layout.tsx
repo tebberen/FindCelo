@@ -2,16 +2,17 @@ import type { Metadata } from 'next'
 import { Inter, Pirata_One } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/Providers'
+import { FarcasterSDKLoader } from '@/components/FarcasterSDKLoader'
 
 const inter = Inter({ subsets: ['latin'] })
 const pirata = Pirata_One({ subsets: ['latin'], weight: '400', variable: '--font-pirata' })
 
-export const metadata = {
-  title: 'FindCelo',
-  description: 'Treasure Island game on Celo',
+export const metadata: Metadata = {
+  title: 'FindCelo - Treasure Island',
+  description: "Find the treasure on Celo's Treasure Island. 6 lands, 1 winner. Play now!",
   openGraph: {
     title: 'FindCelo - Treasure Island',
-    description: 'Treasure Island game on Celo',
+    description: "Find the treasure on Celo's Treasure Island. 6 lands, 1 winner. Play now!",
     images: ['https://find-celo.vercel.app/images/background.png'],
   },
   alternates: {
@@ -37,6 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} ${pirata.variable}`}>
+        <FarcasterSDKLoader />
         <Providers>{children}</Providers>
       </body>
     </html>
