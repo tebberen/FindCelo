@@ -8,9 +8,13 @@ const getFrameResponse = () => {
     imageAspectRatio: "1.91:1",
     buttons: [
       {
-        label: "Play Now",
-        action: "link",
-        target: "https://find-celo.vercel.app"
+        label: "1 CELO",
+      },
+      {
+        label: "5 CELO",
+      },
+      {
+        label: "10 CELO",
       }
     ],
     postUrl: "https://find-celo.vercel.app/api/frame"
