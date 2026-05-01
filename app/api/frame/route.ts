@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-export async function POST() {
-  return NextResponse.json({
+const getFrameResponse = () => {
+  return {
     type: "frame",
     version: "vNext",
     image: "https://find-celo.vercel.app/images/background.png",
@@ -14,5 +14,13 @@ export async function POST() {
       }
     ],
     postUrl: "https://find-celo.vercel.app/api/frame"
-  });
+  };
+};
+
+export async function POST() {
+  return NextResponse.json(getFrameResponse());
+}
+
+export async function GET() {
+  return NextResponse.json(getFrameResponse());
 }
