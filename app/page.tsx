@@ -206,7 +206,7 @@ export default function Home() {
           backgroundRepeat: 'no-repeat',
         }}
       >
-        <div className="space-y-8 p-6 md:p-8 relative z-10">
+        <div className="space-y-4 p-4 relative z-10">
 
         {/* TOP SECTION */}
         <div className="sticky top-0 z-20 flex justify-between items-center bg-black/60 backdrop-blur-md p-2 rounded-xl border border-white/10 flex-nowrap gap-2">
@@ -279,14 +279,14 @@ export default function Home() {
         </div>
 
         {/* HEADER SECTION */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-2">
           <h1 className="font-pirata text-3xl whitespace-nowrap tracking-widest bg-black/60 backdrop-blur-md px-8 py-3 rounded-2xl text-[#FFD700] [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] border border-white/10">
             ✦ FIND CELO ✦
           </h1>
         </div>
 
         {/* TABLE SELECTION */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 my-2">
           {Object.keys(TABLE_TYPES).map((table) => {
             const isActive = selectedTable === table
             return (
@@ -307,7 +307,7 @@ export default function Home() {
         {/* POT CARD */}
         <Card className="border-border bg-card/60 backdrop-blur-md overflow-hidden relative border-2">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-3">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Current Pot 💰</CardDescription>
@@ -330,7 +330,7 @@ export default function Home() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 pt-0">
             <div className="bg-muted/50 rounded-xl p-3 flex items-center justify-center gap-2 border border-border/50">
                <span className="text-sm">👑</span>
                <span className="text-xs font-medium">
@@ -343,7 +343,7 @@ export default function Home() {
         <Separator className="bg-border/50" />
 
         {/* STATUS MESSAGE */}
-        <div className="flex flex-col gap-3 my-4">
+        <div className="flex flex-col gap-3 my-2">
           <div className="text-center h-auto flex items-center justify-center bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/10 shadow-xl">
              {userLand > 0 ? (
                 <p className="text-sm font-bold text-white">
@@ -378,7 +378,7 @@ export default function Home() {
         </div>
 
         {/* LAND GRID */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {[1, 2, 3, 4, 5, 6].map((land) => {
             const playerAddress = tablePlayers ? (tablePlayers as any)[land] : '0x0000000000000000000000000000000000000000'
             const isOccupied = playerAddress !== '0x0000000000000000000000000000000000000000'
@@ -455,7 +455,7 @@ export default function Home() {
         </Card>
 
         {/* FOOTER */}
-        <footer className="bg-black/60 backdrop-blur-md rounded-2xl p-6 w-full border border-white/10 mt-4 flex flex-col items-center gap-6 pt-4 pb-8">
+        <footer className="bg-black/60 backdrop-blur-md rounded-2xl p-4 w-full border border-white/10 mt-2 flex flex-col items-center gap-4 pt-2 pb-6">
           <p className="text-xs font-bold text-yellow-500/60 uppercase tracking-[0.3em]">Built on Celo</p>
         </footer>
         </div>
