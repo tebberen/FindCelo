@@ -413,44 +413,9 @@ export default function Home() {
           })}
         </div>
 
-        {/* RECENT WINNERS */}
-        <Card className="border-border/50 bg-card/60 backdrop-blur-md border-2">
-          <CardHeader className="py-4 px-6 border-b border-border/50">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-sm font-bold text-white uppercase tracking-widest">👑 Recent Winners</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border/50">
-              {recentWinners.length > 0 ? (
-                recentWinners.map((winner, i) => (
-                  <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-nowrap">
-                          <span className="text-xs font-mono font-bold truncate">{winner.address.slice(0, 4)}...{winner.address.slice(-4)}</span>
-                          <Badge variant="outline" className="text-[8px] px-1 py-0 border-primary/20 text-primary shrink-0">{winner.tableType}</Badge>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground block mt-0.5 truncate">Won at Land #{winner.land} • Round #{winner.roundId}</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                       <span className="text-sm font-black text-primary">+{winner.amount} CELO</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-10 text-center text-white/90 text-sm italic font-medium">
-                   The island is quiet... for now.
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* FOOTER */}
-        <footer className="bg-black/60 backdrop-blur-md rounded-2xl p-4 w-full border border-white/10 mt-2 flex flex-col items-center gap-4 pt-2 pb-6">
-          <p className="text-xs font-bold text-yellow-500/60 uppercase tracking-[0.3em]">Built on Celo</p>
+        <footer className="w-full pb-4 flex justify-center">
+          <p className="text-xs font-bold text-yellow-500/60 uppercase tracking-[0.3em] text-center">Built on Celo</p>
         </footer>
         </div>
       </div>
