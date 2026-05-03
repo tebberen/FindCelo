@@ -7,10 +7,8 @@ import { formatEther } from 'viem'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 
 export default function Leaderboard() {
-  const [view, setView] = useState<'winners' | 'leaderboard'>('winners')
   const [recentWinners, setRecentWinners] = useState<any[]>([])
   const publicClient = usePublicClient()
 
@@ -47,7 +45,7 @@ export default function Leaderboard() {
   }, [publicClient])
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-6 md:p-12 bg-[#0a0a0a] text-foreground font-sans">
+    <main className="flex min-h-screen flex-col items-center p-6 md:p-12 bg-[#302624] text-foreground font-sans">
         <div className="max-w-[600px] w-full space-y-8">
             <Link href="/" className="text-muted-foreground hover:text-primary transition-colors mb-8 flex items-center gap-2 font-bold text-sm uppercase tracking-widest">
                 <ArrowLeft size={18} /> Back to Island
@@ -60,39 +58,26 @@ export default function Leaderboard() {
               <p className="text-muted-foreground font-bold uppercase tracking-[0.3em] text-xs">The Greatest Explorers of FindCelo</p>
             </div>
 
-            <div className="flex justify-center gap-4">
-                <Button
-                    variant={view === 'winners' ? 'default' : 'outline'}
-                    onClick={() => setView('winners')}
-                    className="rounded-full px-8 font-bold uppercase tracking-widest text-[10px]"
-                >
-                    👑 Recent Winners
-                </Button>
-                <Button
-                    variant={view === 'leaderboard' ? 'default' : 'outline'}
-                    onClick={() => setView('leaderboard')}
-                    className="rounded-full px-8 font-bold uppercase tracking-widest text-[10px]"
-                >
-                    🏆 Leaderboard
-                </Button>
-            </div>
-
-            <div className="bg-card rounded-[32px] overflow-hidden border-2 border-border backdrop-blur-xl shadow-2xl">
-                {view === 'leaderboard' ? (
+            {/* LEADERBOARD SECTION */}
+            <div className="space-y-4">
+                <h2 className="text-xl font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                    🏆 Global Leaderboard
+                </h2>
+                <div className="bg-black/40 backdrop-blur-sm rounded-[32px] overflow-hidden border-2 border-white/10 shadow-2xl">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-card border-b-2 border-border">
+                            <tr className="bg-white/5 border-b-2 border-white/10">
                                 <th className="px-8 py-5 font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Rank</th>
                                 <th className="px-8 py-5 font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Explorer</th>
                                 <th className="px-8 py-5 font-bold uppercase tracking-widest text-[10px] text-muted-foreground text-right">Reputation (XP)</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y-2 divide-border">
+                        <tbody className="divide-y-2 divide-white/10">
                             {isLeaderboardLoading ? (
                                 <tr>
                                     <td colSpan={3} className="px-8 py-20 text-center">
                                     <div className="flex flex-col items-center gap-4">
-                                        <span className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Consulting the maps...</span>
+                                        <span className="text-muted-foreground font-bold uppercase tracking-widest text-xs animate-pulse">Consulting the maps...</span>
                                     </div>
                                     </td>
                                 </tr>
@@ -135,42 +120,48 @@ export default function Leaderboard() {
                             )}
                         </tbody>
                     </table>
-                ) : (
-                    <div className="divide-y-2 divide-border">
-                        {recentWinners.length > 0 ? (
-                            recentWinners.map((winner, i) => (
-                                <div key={i} className="px-8 py-6 flex items-center justify-between hover:bg-primary/5 transition-colors group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="min-w-0">
-                                            <div className="flex items-center gap-2 flex-nowrap">
-                                                <span className="text-sm font-mono font-bold truncate">
-                                                    {winner.address.slice(0, 4)}...{winner.address.slice(-4)}
-                                                </span>
-                                                <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-primary/20 text-primary shrink-0">
-                                                    {winner.tableType}
-                                                </Badge>
-                                            </div>
-                                            <span className="text-xs text-muted-foreground block mt-1 truncate">
-                                                Won at Land #{winner.land} • Round #{winner.roundId}
+                </div>
+            </div>
+
+            {/* RECENT WINNERS SECTION */}
+            <div className="space-y-4">
+                <h2 className="text-xl font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                    👑 Recent Winners
+                </h2>
+                <div className="bg-black/40 backdrop-blur-sm rounded-[32px] overflow-hidden border-2 border-white/10 shadow-2xl divide-y-2 divide-white/10">
+                    {recentWinners.length > 0 ? (
+                        recentWinners.map((winner, i) => (
+                            <div key={i} className="px-8 py-6 flex items-center justify-between hover:bg-primary/5 transition-colors group">
+                                <div className="flex items-center gap-4">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2 flex-nowrap">
+                                            <span className="text-sm font-mono font-bold truncate">
+                                                {winner.address.slice(0, 4)}...{winner.address.slice(-4)}
                                             </span>
+                                            <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-primary/20 text-primary shrink-0">
+                                                {winner.tableType}
+                                            </Badge>
                                         </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-2xl font-black text-primary">+{winner.amount} CELO</span>
+                                        <span className="text-xs text-muted-foreground block mt-1 truncate">
+                                            Won at Land #{winner.land} • Round #{winner.roundId}
+                                        </span>
                                     </div>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="px-8 py-20 text-center">
-                                <div className="flex flex-col items-center gap-4 opacity-30">
-                                    <span className="text-muted-foreground font-bold uppercase tracking-widest text-xs">
-                                        The island is quiet... for now.
-                                    </span>
+                                <div className="text-right">
+                                    <span className="text-2xl font-black text-primary">+{winner.amount} CELO</span>
                                 </div>
                             </div>
-                        )}
-                    </div>
-                )}
+                        ))
+                    ) : (
+                        <div className="px-8 py-20 text-center">
+                            <div className="flex flex-col items-center gap-4 opacity-30">
+                                <span className="text-muted-foreground font-bold uppercase tracking-widest text-xs">
+                                    The island is quiet... for now.
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="bg-primary/5 border-2 border-primary/10 rounded-2xl p-6 text-center">

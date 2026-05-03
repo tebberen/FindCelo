@@ -196,11 +196,11 @@ export default function Home() {
   const userLand = playersList.findIndex((p: string) => p.toLowerCase() === address?.toLowerCase()) + 1
 
   return (
-    <main className="min-h-screen bg-transparent flex items-center justify-center p-4 text-foreground font-sans selection:bg-primary/30">
+    <main className="min-h-screen bg-transparent flex items-start justify-center p-4 pt-6 text-foreground font-sans selection:bg-primary/30">
       <div
-        className="w-full max-w-[500px] rounded-[24px] overflow-hidden relative shadow-2xl bg-card bg-[url('/images/background.png')] bg-cover bg-center bg-no-repeat [image-rendering:crisp-edges] [image-rendering:-webkit-optimize-contrast]"
+        className="w-full max-w-[500px] rounded-[24px] overflow-hidden relative shadow-2xl bg-card bg-[url('/images/background.png')] bg-cover bg-bottom bg-no-repeat [image-rendering:crisp-edges] [image-rendering:-webkit-optimize-contrast]"
       >
-        <div className="space-y-4 p-4 relative z-10">
+        <div className="space-y-2 p-3 relative z-10">
 
         {/* TOP SECTION */}
         <div className="sticky top-0 z-20 flex justify-between items-center bg-black/60 backdrop-blur-md p-2 rounded-xl border border-white/10 flex-nowrap gap-2 overflow-hidden">
@@ -273,14 +273,14 @@ export default function Home() {
         </div>
 
         {/* HEADER SECTION */}
-        <div className="flex justify-center mb-2">
+        <div className="flex justify-center mb-1">
           <h1 className="font-pirata text-3xl whitespace-nowrap tracking-widest bg-black/60 backdrop-blur-md px-8 py-3 rounded-2xl text-[#FFD700] [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] border border-white/10">
             ✦ FIND CELO ✦
           </h1>
         </div>
 
         {/* TABLE SELECTION */}
-        <div className="flex gap-3 my-2">
+        <div className="flex gap-3 my-1">
           {Object.keys(TABLE_TYPES).map((table) => {
             const isActive = selectedTable === table
             return (
@@ -337,7 +337,7 @@ export default function Home() {
         <Separator className="bg-border/50" />
 
         {/* STATUS MESSAGE */}
-        <div className="flex flex-col gap-3 my-2">
+        <div className="flex flex-col gap-3 my-1">
           <div className="text-center h-auto flex items-center justify-center bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/10 shadow-xl">
              {userLand > 0 ? (
                 <p className="text-sm font-bold text-white">
@@ -372,7 +372,7 @@ export default function Home() {
         </div>
 
         {/* LAND GRID */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1">
           {[1, 2, 3, 4, 5, 6].map((land) => {
             const playerAddress = tablePlayers ? (tablePlayers as any)[land] : '0x0000000000000000000000000000000000000000'
             const isOccupied = playerAddress !== '0x0000000000000000000000000000000000000000'
@@ -417,8 +417,8 @@ export default function Home() {
         </div>
 
         {/* FOOTER */}
-        <footer className="w-full pb-4 flex justify-center">
-          <p className="text-xs font-bold text-yellow-500/60 uppercase tracking-[0.3em] text-center">Built on Celo</p>
+        <footer className="w-full pt-2 pb-4 flex justify-center">
+          <p className="text-xs text-white/50 text-center">Built on Celo</p>
         </footer>
         </div>
       </div>
