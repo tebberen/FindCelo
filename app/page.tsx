@@ -399,8 +399,11 @@ export default function Home() {
                 }`}>
                    <img src="/images/treasure-chest.png" alt="Land" className="w-10 h-10" />
                 </div>
-                <span className="text-[14px] font-bold uppercase text-yellow-200 mb-1 block w-full truncate text-center">
-                   {land} | {isOccupied ? (isUser ? (farcasterUser ? `@${farcasterUser.username}` : 'YOU') : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
+                <span className="text-[14px] font-bold uppercase text-yellow-200 block w-full truncate text-center">
+                   {land}
+                </span>
+                <span className="text-[11px] font-bold uppercase text-yellow-200/80 block w-full truncate text-center">
+                   {isOccupied ? (isUser ? (farcasterUser ? `@${farcasterUser.username}` : 'YOU') : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
                 </span>
 
                 {isConfirming && !isOccupied && (
