@@ -4,6 +4,7 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        // Farcaster manifest redirect
         source: '/.well-known/farcaster.json',
         destination: 'https://api.farcaster.xyz/miniapps/hosted-manifest/019ded7c-c786-52d8-ad85-e7281e89719a',
         permanent: false,
