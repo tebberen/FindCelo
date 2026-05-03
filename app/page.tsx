@@ -280,7 +280,7 @@ export default function Home() {
 
         {/* HEADER SECTION */}
         <div className="flex justify-center mb-6">
-          <h1 className="font-pirata text-5xl tracking-widest bg-black/60 backdrop-blur-md px-8 py-3 rounded-2xl text-[#FFD700] [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] border border-white/10">
+          <h1 className="font-pirata text-3xl whitespace-nowrap tracking-widest bg-black/60 backdrop-blur-md px-8 py-3 rounded-2xl text-[#FFD700] [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] border border-white/10">
             ✦ FIND CELO ✦
           </h1>
         </div>
