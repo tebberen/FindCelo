@@ -57,12 +57,12 @@ export default function Leaderboard() {
                                             {index === 0 ? '👑' : index + 1}
                                         </div>
                                     </td>
-                                    <td className="px-8 py-5">
-                                        <div className="flex flex-col">
-                                          <span className="font-mono text-sm group-hover:text-primary transition-colors">
-                                            {address.slice(0, 10)}...{address.slice(-8)}
+                                    <td className="px-8 py-5 min-w-0">
+                                        <div className="flex flex-col min-w-0">
+                                          <span className="font-mono text-sm group-hover:text-primary transition-colors truncate">
+                                            {address.slice(0, 4)}...{address.slice(-4)}
                                           </span>
-                                          {index === 0 && <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">Island Sovereign</span>}
+                                          {index === 0 && <span className="text-[10px] font-bold text-primary uppercase tracking-tighter truncate">Island Sovereign</span>}
                                         </div>
                                     </td>
                                     <td className="px-8 py-5 text-right">
