@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient, useConnect } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import Link from 'next/link'
+import { sdk } from '@farcaster/miniapp-sdk'
+import type { Context } from '@farcaster/miniapp-core'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI, TABLE_TYPES, TABLE_COSTS } from '@/src/constants'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
@@ -16,20 +17,36 @@ export default function Home() {
   const { connect, connectors } = useConnect()
   const [selectedTable, setSelectedTable] = useState('BRONZE')
   const [isMiniPay, setIsMiniPay] = useState(false)
+  const [farcasterUser, setFarcasterUser] = useState<Context.UserContext | null>(null)
 
-  // Detect MiniPay
+  // Detect MiniPay and Farcaster
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).ethereum?.isMiniPay) {
       setIsMiniPay(true)
     }
+
+    const loadFarcaster = async () => {
+      const context = await sdk.context
+      if (context?.user) {
+        setFarcasterUser(context.user)
+      }
+    }
+    loadFarcaster()
   }, [])
 
-  // Auto-connect for MiniPay
+  // Auto-connect
   useEffect(() => {
-    if (isMiniPay && !isConnected && connectors.length > 0) {
-      const injectedConnector = connectors.find(c => c.id === 'injected')
-      if (injectedConnector) {
-        connect({ connector: injectedConnector })
+    if (!isConnected && connectors.length > 0) {
+      if (isMiniPay) {
+        const injectedConnector = connectors.find(c => c.id === 'injected')
+        if (injectedConnector) {
+          connect({ connector: injectedConnector })
+        }
+      } else {
+        const farcasterConnector = connectors.find(c => c.id === 'farcasterMiniApp')
+        if (farcasterConnector) {
+          connect({ connector: farcasterConnector })
+        }
       }
     }
   }, [isMiniPay, isConnected, connect, connectors])
@@ -166,7 +183,28 @@ export default function Home() {
               </Link>
             </Button>
           </div>
-          <ConnectButton accountStatus="avatar" chainStatus="icon" showBalance={false} />
+          {isConnected && farcasterUser && (
+            <div className="flex items-center gap-2 bg-white/5 px-2 py-1 rounded-full border border-white/10">
+              <img
+                src={farcasterUser.pfpUrl}
+                alt={farcasterUser.username}
+                className="w-5 h-5 rounded-full border border-primary/50"
+              />
+              <span className="text-[10px] font-bold text-white uppercase tracking-wider">
+                @{farcasterUser.username}
+              </span>
+            </div>
+          )}
+          {isConnected && !farcasterUser && (
+            <div className="flex items-center gap-2 bg-white/5 px-2 py-1 rounded-full border border-white/10">
+              <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-[8px]">
+                👤
+              </div>
+              <span className="text-[10px] font-bold text-white uppercase tracking-wider">
+                {address?.slice(0, 4)}...{address?.slice(-4)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* HEADER SECTION */}
@@ -275,7 +313,7 @@ export default function Home() {
                    <img src="/images/treasure-chest.png" alt="Land" className="w-10 h-10" />
                 </div>
                 <span className="text-lg font-bold uppercase text-yellow-200 mb-1 flex items-center whitespace-nowrap">
-                   {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
+                   {land} | {isOccupied ? (isUser ? (farcasterUser ? `@${farcasterUser.username}` : 'YOU') : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
                 </span>
 
                 {isConfirming && !isOccupied && (
