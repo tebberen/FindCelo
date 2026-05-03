@@ -209,56 +209,73 @@ export default function Home() {
         <div className="space-y-8 p-6 md:p-8 relative z-10">
 
         {/* TOP SECTION */}
-        <div className="flex justify-between items-center bg-black/40 backdrop-blur-sm p-4 rounded-xl border border-white/10">
-          <div className="flex items-center gap-3">
-            <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold">
+        <div className="sticky top-0 z-20 flex justify-between items-center bg-black/60 backdrop-blur-md p-2 rounded-xl border border-white/10 flex-nowrap gap-2">
+          <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden shrink-0">
+            <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-1.5 py-0.5 uppercase tracking-wider text-[9px] font-bold shrink-0">
               Live
             </Badge>
             {isMiniPay && (
-              <Badge variant="outline" className="flex gap-1 items-center px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold border-yellow-500/50 text-yellow-500 bg-yellow-500/10">
+              <Badge variant="outline" className="flex gap-1 items-center px-1.5 py-0.5 uppercase tracking-wider text-[9px] font-bold border-yellow-500/50 text-yellow-500 bg-yellow-500/10 shrink-0">
                 MiniPay
               </Badge>
             )}
-            <span className="text-[10px] font-bold text-white uppercase tracking-widest">
-              Round #{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
+            <span className="text-[9px] font-bold text-white uppercase tracking-widest shrink-0">
+              R#{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
             </span>
 
-            <Button asChild variant="ghost" size="sm" className="h-7 gap-1 px-2 text-white hover:bg-white/10 border border-white/5 bg-white/5">
+            <Button asChild variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
               <Link href="/leaderboard">
                 <span>🏆</span>
-                <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider">Leaderboard</span>
+                <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">Leader</span>
               </Link>
             </Button>
 
-            <Button asChild variant="ghost" size="sm" className="h-7 gap-1 px-2 text-white hover:bg-white/10 border border-white/5 bg-white/5">
+            <Button asChild variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
               <Link href="/profile">
                 <span>👤</span>
-                <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider">Profile</span>
+                <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">Profile</span>
               </Link>
             </Button>
           </div>
-          {isConnected && farcasterUser && (
-            <div className="flex items-center gap-2 bg-white/5 px-2 py-1 rounded-full border border-white/10">
-              <img
-                src={farcasterUser.pfpUrl}
-                alt={farcasterUser.username}
-                className="w-5 h-5 rounded-full border border-primary/50"
-              />
-              <span className="text-[10px] font-bold text-white uppercase tracking-wider">
-                @{farcasterUser.username}
-              </span>
-            </div>
-          )}
-          {isConnected && !farcasterUser && (
-            <div className="flex items-center gap-2 bg-white/5 px-2 py-1 rounded-full border border-white/10">
-              <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-[8px]">
-                👤
+          <div className="flex items-center gap-1.5 min-w-0 flex-nowrap">
+            {isConnected && farcasterUser && (
+              <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0.5 rounded-full border border-white/10 min-w-0">
+                <img
+                  src={farcasterUser.pfpUrl}
+                  alt={farcasterUser.username}
+                  className="w-4 h-4 rounded-full border border-primary/50 shrink-0"
+                />
+                <span className="text-[9px] font-bold text-white uppercase tracking-wider truncate max-w-[70px]">
+                  @{farcasterUser.username}
+                </span>
               </div>
-              <span className="text-[10px] font-bold text-white uppercase tracking-wider">
-                {address?.slice(0, 4)}...{address?.slice(-4)}
-              </span>
-            </div>
-          )}
+            )}
+            {isConnected && !farcasterUser && (
+              <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0.5 rounded-full border border-white/10 min-w-0">
+                <div className="w-4 h-4 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-[8px] shrink-0">
+                  👤
+                </div>
+                <span className="text-[9px] font-bold text-white uppercase tracking-wider truncate max-w-[70px]">
+                  {address?.slice(0, 4)}...{address?.slice(-4)}
+                </span>
+              </div>
+            )}
+            {!isConnected && (
+              <Button
+                onClick={() => {
+                  const connector = isMiniPay
+                    ? connectors.find(c => c.id === 'injected')
+                    : connectors.find(c => c.id === 'farcasterMiniApp');
+                  if (connector) connect({ connector });
+                }}
+                variant="default"
+                size="sm"
+                className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider shrink-0"
+              >
+                Connect
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* HEADER SECTION */}
