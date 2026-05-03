@@ -18,6 +18,11 @@ export default function Home() {
   const [selectedTable, setSelectedTable] = useState('BRONZE')
   const [isMiniPay, setIsMiniPay] = useState(false)
   const [farcasterUser, setFarcasterUser] = useState<Context.UserContext | null>(null)
+  const [showShareJoin, setShowShareJoin] = useState(false)
+  const [showShareWin, setShowShareWin] = useState(false)
+  const [lastJoinedLand, setLastJoinedLand] = useState<number | null>(null)
+  const [lastWinAmount, setLastWinAmount] = useState<string | null>(null)
+  const [lastProcessedWinnerRound, setLastProcessedWinnerRound] = useState<string | null>(null)
 
   // Detect MiniPay and Farcaster
   useEffect(() => {
@@ -82,8 +87,25 @@ export default function Home() {
     if (isConfirmed) {
       refetchPlayers()
       refetchTableInfo()
+      setShowShareJoin(true)
     }
   }, [isConfirmed, refetchPlayers, refetchTableInfo])
+
+  // Monitor for wins
+  useEffect(() => {
+    if (recentWinners.length > 0 && address) {
+      const latestWinner = recentWinners[0]
+      if (
+        latestWinner.address.toLowerCase() === address.toLowerCase() &&
+        latestWinner.roundId !== lastProcessedWinnerRound
+      ) {
+        setLastWinAmount(latestWinner.amount)
+        setShowShareWin(true)
+        setShowShareJoin(false) // Win takes precedence
+        setLastProcessedWinnerRound(latestWinner.roundId)
+      }
+    }
+  }, [recentWinners, address, lastProcessedWinnerRound])
 
   // Fetch Recent Winners from Events
   useEffect(() => {
@@ -114,6 +136,9 @@ export default function Home() {
 
   const handleJoinGame = (land: number) => {
     if (!isConnected) return
+    setLastJoinedLand(land)
+    setShowShareJoin(false)
+    setShowShareWin(false)
 
     writeContract({
       address: CONTRACT_ADDRESS as `0x${string}`,
@@ -122,6 +147,35 @@ export default function Home() {
       args: [BigInt(land), '0x0000000000000000000000000000000000000000', tableIndex],
       value: parseEther(tableCost),
     })
+  }
+
+  const handleShareJoin = async () => {
+    const remainingSlots = 6 - seatsFilled
+    const text = `🏝️ I just joined a FindCelo game! I'm on Land ${lastJoinedLand}. ${remainingSlots} slots left. Join me and find the treasure!`
+
+    try {
+      await sdk.actions.composeCast({
+        text,
+        embeds: ['https://find-celo.vercel.app']
+      })
+      setShowShareJoin(false)
+    } catch (error) {
+      console.error('Error sharing join:', error)
+    }
+  }
+
+  const handleShareWin = async () => {
+    const text = `🎉 I just won ${lastWinAmount} CELO on FindCelo Treasure Island! Can you beat my treasure?`
+
+    try {
+      await sdk.actions.composeCast({
+        text,
+        embeds: ['https://find-celo.vercel.app']
+      })
+      setShowShareWin(false)
+    } catch (error) {
+      console.error('Error sharing win:', error)
+    }
   }
 
   const seatsFilled = useMemo(() => {
@@ -272,16 +326,38 @@ export default function Home() {
         <Separator className="bg-border/50" />
 
         {/* STATUS MESSAGE */}
-        <div className="text-center h-auto flex items-center justify-center bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/10 shadow-xl my-4">
-           {userLand > 0 ? (
-              <p className="text-sm font-bold text-white">
-                 You're in land <span className="text-yellow-400 font-black">#{userLand}</span> — waiting for <span className="text-yellow-400 font-black">{6 - seatsFilled}</span> more
-              </p>
-           ) : (
-              <p className="text-sm font-bold text-white/80 flex gap-1.5 items-center">
-                Select a land to join the voyage
-              </p>
-           )}
+        <div className="flex flex-col gap-3 my-4">
+          <div className="text-center h-auto flex items-center justify-center bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/10 shadow-xl">
+             {userLand > 0 ? (
+                <p className="text-sm font-bold text-white">
+                   You're in land <span className="text-yellow-400 font-black">#{userLand}</span> — waiting for <span className="text-yellow-400 font-black">{6 - seatsFilled}</span> more
+                </p>
+             ) : (
+                <p className="text-sm font-bold text-white/80 flex gap-1.5 items-center">
+                  Select a land to join the voyage
+                </p>
+             )}
+          </div>
+
+          {(showShareJoin || showShareWin) && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+              <Button
+                onClick={showShareWin ? handleShareWin : handleShareJoin}
+                className="w-full h-12 font-black uppercase tracking-widest bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white border-none shadow-lg shadow-blue-500/20 group"
+              >
+                {showShareWin ? (
+                  <span className="flex items-center gap-2">
+                    🎉 Share Win to Farcaster
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    📢 Arkadaşını Davet Et
+                  </span>
+                )}
+                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* LAND GRID */}
