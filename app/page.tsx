@@ -198,13 +198,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 text-foreground font-sans selection:bg-primary/30">
       <div
-        className="w-full max-w-[500px] rounded-[24px] overflow-hidden relative shadow-2xl"
-        style={{
-          backgroundImage: "url('/images/background.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
+        className="w-full max-w-[500px] rounded-[24px] overflow-hidden relative shadow-2xl bg-[url('/images/background.png')] bg-cover bg-center bg-no-repeat [image-rendering:crisp-edges] [image-rendering:-webkit-optimize-contrast] max-[768px]:bg-contain max-[768px]:bg-top"
       >
         <div className="space-y-4 p-4 relative z-10">
 
