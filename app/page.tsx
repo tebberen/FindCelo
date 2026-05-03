@@ -209,8 +209,8 @@ export default function Home() {
         <div className="space-y-4 p-4 relative z-10">
 
         {/* TOP SECTION */}
-        <div className="sticky top-0 z-20 flex justify-between items-center bg-black/60 backdrop-blur-md p-2 rounded-xl border border-white/10 flex-nowrap gap-2">
-          <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden shrink-0">
+        <div className="sticky top-0 z-20 flex justify-between items-center bg-black/60 backdrop-blur-md p-2 rounded-xl border border-white/10 flex-nowrap gap-2 overflow-hidden">
+          <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden shrink-0 min-w-0">
             <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-1.5 py-0.5 uppercase tracking-wider text-[9px] font-bold shrink-0">
               Live
             </Badge>
@@ -219,7 +219,7 @@ export default function Home() {
                 MiniPay
               </Badge>
             )}
-            <span className="text-[9px] font-bold text-white uppercase tracking-widest shrink-0">
+            <span className="text-[9px] font-bold text-white uppercase tracking-wider shrink-0">
               R#{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
             </span>
 
@@ -405,7 +405,7 @@ export default function Home() {
                 }`}>
                    <img src="/images/treasure-chest.png" alt="Land" className="w-10 h-10" />
                 </div>
-                <span className="text-lg font-bold uppercase text-yellow-200 mb-1 flex items-center whitespace-nowrap">
+                <span className="text-[14px] font-bold uppercase text-yellow-200 mb-1 block w-full truncate text-center">
                    {land} | {isOccupied ? (isUser ? (farcasterUser ? `@${farcasterUser.username}` : 'YOU') : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
                 </span>
 
@@ -432,12 +432,12 @@ export default function Home() {
                 recentWinners.map((winner, i) => (
                   <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-bold">{winner.address.slice(0, 6)}...{winner.address.slice(-4)}</span>
-                          <Badge variant="outline" className="text-[8px] px-1 py-0 border-primary/20 text-primary">{winner.tableType}</Badge>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-nowrap">
+                          <span className="text-xs font-mono font-bold truncate">{winner.address.slice(0, 4)}...{winner.address.slice(-4)}</span>
+                          <Badge variant="outline" className="text-[8px] px-1 py-0 border-primary/20 text-primary shrink-0">{winner.tableType}</Badge>
                         </div>
-                        <span className="text-[10px] text-muted-foreground block mt-0.5">Won at Land #{winner.land} • Round #{winner.roundId}</span>
+                        <span className="text-[10px] text-muted-foreground block mt-0.5 truncate">Won at Land #{winner.land} • Round #{winner.roundId}</span>
                       </div>
                     </div>
                     <div className="text-right">

@@ -50,15 +50,15 @@ export default function Profile() {
             </Link>
 
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-border">
-              <div className="flex items-center gap-6">
-                <div>
-                  <h1 className="text-4xl font-black italic tracking-tighter text-primary">Captain's Log</h1>
-                  <p className="font-mono text-xs text-muted-foreground">{address}</p>
+              <div className="flex items-center gap-6 min-w-0">
+                <div className="min-w-0">
+                  <h1 className="text-4xl font-black italic tracking-tighter text-primary truncate">Captain's Log</h1>
+                  <p className="font-mono text-xs text-muted-foreground truncate">{address?.slice(0, 4)}...{address?.slice(-4)}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full">
-                 <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                 <span className="text-[10px] font-black text-primary uppercase tracking-widest">Verified Voyager</span>
+              <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full shrink-0">
+                 <div className="w-2 h-2 bg-emerald-500 rounded-full shrink-0"></div>
+                 <span className="text-[10px] font-black text-primary uppercase tracking-widest whitespace-nowrap">Verified Voyager</span>
               </div>
             </div>
 
