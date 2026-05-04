@@ -22,7 +22,7 @@ contract FindCelo is Ownable, ReentrancyGuard {
     }
 
     struct Table {
-        address[7] players; // Index 1-6 for lands
+        address[7] players; // Index 1-6 for lands, 0 unused
         uint8 seatsFilled;
     }
 
@@ -52,7 +52,7 @@ contract FindCelo is Ownable, ReentrancyGuard {
     event LeaderboardUpdated();
 
     /**
-     * @dev Constructor sets the initial owner.
+     * @dev Constructor sets the initial owner via msg.sender.
      */
     constructor() Ownable(msg.sender) {}
 
@@ -99,7 +99,7 @@ contract FindCelo is Ownable, ReentrancyGuard {
     function _resolveTable(TableType tableType) internal {
         Table storage table = tables[tableType];
 
-        // Randomness using Celo's native RANDAO (block.prevrandao)
+        // Randomness using Celo's native block.prevrandao
         uint256 winningLand = (uint256(keccak256(abi.encodePacked(block.prevrandao, block.timestamp, tableType))) % 6) + 1;
         address winner = table.players[winningLand];
 
