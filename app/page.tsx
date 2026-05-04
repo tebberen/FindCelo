@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient, useConnect } from 'wagmi'
-import { parseEther, formatEther } from 'viem'
+import { parseEther, formatEther, decodeEventLog } from 'viem'
 import Link from 'next/link'
 import { sdk } from '@farcaster/miniapp-sdk'
 import type { Context } from '@farcaster/miniapp-core'
@@ -23,6 +23,7 @@ export default function Home() {
   const [lastJoinedLand, setLastJoinedLand] = useState<number | null>(null)
   const [lastWinAmount, setLastWinAmount] = useState<string | null>(null)
   const [lastProcessedWinnerRound, setLastProcessedWinnerRound] = useState<string | null>(null)
+  const [lastCastedHash, setLastCastedHash] = useState<string | null>(null)
 
   // Detect MiniPay and Farcaster
   useEffect(() => {
@@ -78,18 +79,82 @@ export default function Home() {
 
   const { data: hash, writeContract, isPending } = useWriteContract()
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  const { data: receipt, isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     })
 
   useEffect(() => {
-    if (isConfirmed) {
-      refetchPlayers()
-      refetchTableInfo()
-      setShowShareJoin(true)
+    if (isConfirmed && receipt && hash && hash !== lastCastedHash) {
+      setLastCastedHash(hash)
+
+      const triggerAutoCast = async () => {
+        try {
+          // Need latest table state for accurate seatsFilled
+          const { data: latestTableInfo } = await refetchTableInfo()
+          refetchPlayers()
+
+          let currentFilled = 0
+          if (latestTableInfo) {
+             if (typeof latestTableInfo === 'object') {
+               currentFilled = Number((latestTableInfo as any).seatsFilled || 0)
+             } else {
+               currentFilled = Number(latestTableInfo)
+             }
+          }
+
+          // Check for TableFilled event
+          const tableFilledLog = receipt.logs.find(log => {
+            try {
+              const decoded = decodeEventLog({
+                abi: FIND_CELO_ABI,
+                data: log.data,
+                topics: log.topics,
+              })
+              return decoded.eventName === 'TableFilled'
+            } catch {
+              return false
+            }
+          })
+
+          let text = ''
+          const username = farcasterUser?.username ? `@${farcasterUser.username}` : (address?.slice(0, 4) + '...' + address?.slice(-4))
+
+          if (tableFilledLog) {
+            const decoded = decodeEventLog({
+              abi: FIND_CELO_ABI,
+              data: tableFilledLog.data,
+              topics: tableFilledLog.topics,
+            }) as any
+
+            const winner = decoded.args.winner
+            const prize = formatEther(decoded.args.prize)
+            const winnerLand = Number(decoded.args.winningLand)
+            const winnerUsername = winner.toLowerCase() === address?.toLowerCase()
+              ? (farcasterUser?.username ? `@${farcasterUser.username}` : winner.slice(0, 4) + '...' + winner.slice(-4))
+              : winner.slice(0, 4) + '...' + winner.slice(-4)
+
+            text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${prize} CELO! 🤑\nThe treasure was hidden in Land ${winnerLand}.\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 https://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+          } else {
+            const filledCount = currentFilled
+            const emptyCount = 6 - filledCount
+
+            text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\nhttps://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+          }
+
+          await sdk.actions.composeCast({
+            text,
+            embeds: ['https://find-celo.vercel.app']
+          })
+        } catch (error) {
+          console.error('Error triggering auto-cast:', error)
+          setShowShareJoin(true)
+        }
+      }
+
+      triggerAutoCast()
     }
-  }, [isConfirmed, refetchPlayers, refetchTableInfo])
+  }, [isConfirmed, receipt, hash, lastCastedHash, refetchPlayers, refetchTableInfo, farcasterUser, address, lastJoinedLand])
 
   // Monitor for wins
   useEffect(() => {
@@ -150,8 +215,10 @@ export default function Home() {
   }
 
   const handleShareJoin = async () => {
-    const remainingSlots = 6 - seatsFilled
-    const text = `🏝️ I just joined a FindCelo game! I'm on Land ${lastJoinedLand}. ${remainingSlots} slots left. Join me and find the treasure!`
+    const username = farcasterUser?.username ? `@${farcasterUser.username}` : (address?.slice(0, 4) + '...' + address?.slice(-4))
+    const filledCount = seatsFilled
+    const emptyCount = 6 - filledCount
+    const text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\nhttps://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
 
     try {
       await sdk.actions.composeCast({
@@ -165,7 +232,8 @@ export default function Home() {
   }
 
   const handleShareWin = async () => {
-    const text = `🎉 I just won ${lastWinAmount} CELO on FindCelo Treasure Island! Can you beat my treasure?`
+    const winnerUsername = farcasterUser?.username ? `@${farcasterUser.username}` : address?.slice(0, 4) + '...' + address?.slice(-4)
+    const text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${lastWinAmount} CELO! 🤑\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 https://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
 
     try {
       await sdk.actions.composeCast({
@@ -196,9 +264,9 @@ export default function Home() {
   const userLand = playersList.findIndex((p: string) => p.toLowerCase() === address?.toLowerCase()) + 1
 
   return (
-    <main className="min-h-screen bg-transparent flex items-start justify-center px-4 pt-2 pb-0 text-foreground font-sans selection:bg-primary/30">
+    <main className="min-h-screen bg-transparent flex items-start justify-center p-0 text-foreground font-sans selection:bg-primary/30">
       <div
-        className="w-full max-w-[500px] rounded-[24px] overflow-hidden relative shadow-2xl bg-card bg-[url('/images/background.png')] bg-cover bg-bottom bg-no-repeat [image-rendering:crisp-edges] [image-rendering:-webkit-optimize-contrast]"
+        className="w-full max-w-[500px] rounded-[24px] overflow-hidden relative shadow-2xl bg-card bg-[url('/images/background.png')] bg-cover bg-center bg-no-repeat [image-rendering:crisp-edges] [image-rendering:-webkit-optimize-contrast]"
       >
         <div className="space-y-2 pt-3 px-3 pb-48 relative z-10">
 
@@ -275,7 +343,7 @@ export default function Home() {
         {/* HEADER SECTION */}
         <div className="flex justify-center mb-1">
           <h1 className="font-pirata text-3xl whitespace-nowrap tracking-widest bg-black/60 backdrop-blur-md px-8 py-3 rounded-2xl text-[#FFD700] [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] border border-white/10">
-            ✦ FIND CELO ✦
+            ✦ Treasure Island ✦
           </h1>
         </div>
 
@@ -417,8 +485,8 @@ export default function Home() {
         </div>
 
         {/* FOOTER */}
-        <footer className="w-full pt-0 pb-0 flex justify-center">
-          <p className="text-xs text-white/50 text-center">Built on Celo</p>
+        <footer className="w-full p-4 flex justify-center">
+          <p className="text-sm font-bold text-[#FFD700] text-center">Built on Celo</p>
         </footer>
         </div>
       </div>
