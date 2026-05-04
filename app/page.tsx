@@ -484,6 +484,42 @@ export default function Home() {
           })}
         </div>
 
+        {/* RECENT WINNERS */}
+        <div className="space-y-2">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2 px-1">
+                👑 Recent Winners
+            </h2>
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden border border-white/10 shadow-xl divide-y divide-white/5">
+                {recentWinners.length > 0 ? (
+                    recentWinners.slice(0, 3).map((winner, i) => (
+                        <div key={i} className="px-3 py-2 flex items-center justify-between hover:bg-white/5 transition-colors group">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5 flex-nowrap">
+                                        <span className="text-[10px] font-mono font-bold text-white truncate">
+                                            {winner.address.slice(0, 4)}...{winner.address.slice(-4)}
+                                        </span>
+                                        <Badge variant="outline" className="text-[8px] px-1 py-0 border-primary/20 text-primary shrink-0 h-3.5 uppercase font-black">
+                                            {winner.tableType}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                                <span className="text-xs font-black text-[#FFD700]">+{winner.amount} CELO</span>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="px-3 py-4 text-center">
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-50">
+                            The island is quiet...
+                        </span>
+                    </div>
+                )}
+            </div>
+        </div>
+
         {/* FOOTER */}
         <footer className="w-full p-4 flex justify-center">
           <p className="text-sm font-bold text-[#FFD700] text-center">Built on Celo</p>
