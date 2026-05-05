@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'FindCelo - Treasure Island Game',
     description: '6 lands, 1 treasure, winner takes 5x CELO. Play now!',
-    images: ['https://find-celo.vercel.app/images/Find%20Celo.png'],
+    images: ['https://find-celo.vercel.app/images/logo.png'],
   },
   alternates: {
     types: {
@@ -21,13 +21,34 @@ export const metadata: Metadata = {
     },
   },
   other: {
-    'og:image': 'https://find-celo.vercel.app/images/Find%20Celo.png',
-    'fc:frame:image': 'https://find-celo.vercel.app/images/Find%20Celo.png',
+    'og:image': 'https://find-celo.vercel.app/images/logo.png',
+    'fc:frame:image': 'https://find-celo.vercel.app/images/logo.png',
     'og:title': 'FindCelo - Treasure Island Game',
     'og:description': '6 lands, 1 treasure, winner takes 5x CELO. Play now!',
-    'fc:frame': 'vNext',
-    'fc:frame:button:1': '🏝️ Play FindCelo',
-    'fc:frame:button:1:action': 'launch_frame',
+    'fc:miniapp': JSON.stringify({
+      version: '1',
+      imageUrl: 'https://find-celo.vercel.app/images/logo.png',
+      button: {
+        title: '🏝️ Play FindCelo',
+        action: {
+          type: 'launch_miniapp',
+          url: 'https://find-celo.vercel.app',
+          name: 'FindCelo',
+        },
+      },
+    }),
+    'fc:frame': JSON.stringify({
+      version: '1',
+      imageUrl: 'https://find-celo.vercel.app/images/logo.png',
+      button: {
+        title: '🏝️ Play FindCelo',
+        action: {
+          type: 'launch_frame',
+          url: 'https://find-celo.vercel.app',
+          name: 'FindCelo',
+        },
+      },
+    }),
   },
 }
 

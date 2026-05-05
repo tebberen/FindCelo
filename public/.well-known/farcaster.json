@@ -2,9 +2,9 @@
   "frame": {
     "version": "1",
     "name": "FindCelo",
-    "iconUrl": "https://find-celo.vercel.app/images/Find%20Celo.png",
+    "iconUrl": "https://find-celo.vercel.app/images/logo.png",
     "homeUrl": "https://find-celo.vercel.app",
-    "imageUrl": "https://find-celo.vercel.app/images/Find%20Celo.png",
-    "buttonTitle": "Find Treasure"
+    "imageUrl": "https://find-celo.vercel.app/images/logo.png",
+    "buttonTitle": "Play FindCelo"
   }
 }
