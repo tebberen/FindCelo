@@ -28,6 +28,7 @@ export const metadata: Metadata = {
     'fc:miniapp': JSON.stringify({
       version: '1',
       imageUrl: 'https://find-celo.vercel.app/images/logo.png',
+      iconUrl: 'https://find-celo.vercel.app/images/logo.png',
       button: {
         title: '🏝️ Play FindCelo',
         action: {
@@ -40,6 +41,7 @@ export const metadata: Metadata = {
     'fc:frame': JSON.stringify({
       version: '1',
       imageUrl: 'https://find-celo.vercel.app/images/logo.png',
+      iconUrl: 'https://find-celo.vercel.app/images/logo.png',
       button: {
         title: '🏝️ Play FindCelo',
         action: {
