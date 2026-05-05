@@ -8,12 +8,12 @@ const inter = Inter({ subsets: ['latin'] })
 const pirata = Pirata_One({ subsets: ['latin'], weight: '400', variable: '--font-pirata' })
 
 export const metadata: Metadata = {
-  title: 'FindCelo - Treasure Island',
-  description: "Find the treasure on Celo's Treasure Island. 6 lands, 1 winner. Play now!",
+  title: 'FindCelo - Treasure Island Game',
+  description: '6 lands, 1 treasure, winner takes 5x CELO. Play now!',
   openGraph: {
-    title: 'FindCelo - Treasure Island',
-    description: "Find the treasure on Celo's Treasure Island. 6 lands, 1 winner. Play now!",
-    images: ['https://find-celo.vercel.app/images/background.png'],
+    title: 'FindCelo - Treasure Island Game',
+    description: '6 lands, 1 treasure, winner takes 5x CELO. Play now!',
+    images: ['https://find-celo.vercel.app/images/Find%20Celo.png'],
   },
   alternates: {
     types: {
@@ -21,12 +21,13 @@ export const metadata: Metadata = {
     },
   },
   other: {
+    'og:image': 'https://find-celo.vercel.app/images/Find%20Celo.png',
+    'fc:frame:image': 'https://find-celo.vercel.app/images/Find%20Celo.png',
+    'og:title': 'FindCelo - Treasure Island Game',
+    'og:description': '6 lands, 1 treasure, winner takes 5x CELO. Play now!',
     'fc:frame': 'vNext',
-    'fc:frame:image': 'https://find-celo.vercel.app/images/background.png',
-    'fc:frame:post_url': 'https://find-celo.vercel.app/api/frame',
-    'fc:frame:button:1': '1 CELO',
-    'fc:frame:button:2': '5 CELO',
-    'fc:frame:button:3': '10 CELO',
+    'fc:frame:button:1': '🏝️ Play FindCelo',
+    'fc:frame:button:1:action': 'launch_frame',
   },
 }
 

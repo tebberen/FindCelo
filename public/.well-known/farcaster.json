@@ -1,0 +1,10 @@
+{
+  "frame": {
+    "version": "1",
+    "name": "FindCelo",
+    "iconUrl": "https://find-celo.vercel.app/images/Find%20Celo.png",
+    "homeUrl": "https://find-celo.vercel.app",
+    "imageUrl": "https://find-celo.vercel.app/images/Find%20Celo.png",
+    "buttonTitle": "Find Treasure"
+  }
+}
