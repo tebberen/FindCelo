@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useReadContract, usePublicClient } from 'wagmi'
+import { useReadContract, useReadContracts, usePublicClient } from 'wagmi'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI } from '@/src/constants'
 import { formatEther } from 'viem'
 import Link from 'next/link'
@@ -16,6 +16,18 @@ export default function Leaderboard() {
     address: CONTRACT_ADDRESS as `0x${string}`,
     abi: FIND_CELO_ABI,
     functionName: 'getLeaderboard',
+  })
+
+  const { data: profiles, isLoading: isProfilesLoading } = useReadContracts({
+    contracts: (leaderboard as `0x${string}`[] || []).map((address) => ({
+      address: CONTRACT_ADDRESS as `0x${string}`,
+      abi: FIND_CELO_ABI as any,
+      functionName: 'getUserProfile',
+      args: [address],
+    })),
+    query: {
+      enabled: !!leaderboard && (leaderboard as any[]).length > 0,
+    }
   })
 
   useEffect(() => {
@@ -73,7 +85,7 @@ export default function Leaderboard() {
                             </tr>
                         </thead>
                         <tbody className="divide-y-2 divide-white/10">
-                            {isLeaderboardLoading ? (
+                            {isLeaderboardLoading || isProfilesLoading ? (
                                 <tr>
                                     <td colSpan={3} className="px-8 py-20 text-center">
                                     <div className="flex flex-col items-center gap-4">
@@ -82,33 +94,38 @@ export default function Leaderboard() {
                                     </td>
                                 </tr>
                             ) : leaderboard && (leaderboard as any).length > 0 ? (
-                                (leaderboard as any[]).map((address, index) => (
-                                    <tr key={address} className="hover:bg-primary/5 transition-colors group">
-                                        <td className="px-8 py-5">
-                                            <div className={`
-                                                inline-flex items-center justify-center w-10 h-10 rounded-xl font-black
-                                                ${index === 0 ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' :
-                                                index === 1 ? 'bg-muted text-muted-foreground' :
-                                                index === 2 ? 'bg-amber-700/50 text-white' : 'bg-muted/50 text-muted-foreground'}
-                                            `}>
-                                                {index === 0 ? '👑' : index + 1}
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-5 min-w-0">
-                                            <div className="flex flex-col min-w-0">
-                                            <span className="font-mono text-sm group-hover:text-primary transition-colors truncate">
-                                                {address.slice(0, 4)}...{address.slice(-4)}
-                                            </span>
-                                            {index === 0 && <span className="text-[10px] font-bold text-primary uppercase tracking-tighter truncate">Island Sovereign</span>}
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-5 text-right">
-                                            <span className="text-xl font-black text-primary">
-                                                -
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))
+                                (leaderboard as any[]).map((address, index) => {
+                                    const profile = profiles?.[index]?.result as any;
+                                    const xp = profile?.totalXP?.toString() || '0';
+
+                                    return (
+                                        <tr key={address} className="hover:bg-primary/5 transition-colors group">
+                                            <td className="px-8 py-5">
+                                                <div className={`
+                                                    inline-flex items-center justify-center w-10 h-10 rounded-xl font-black gap-1
+                                                    ${index === 0 ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 w-16' :
+                                                    index === 1 ? 'bg-muted text-muted-foreground' :
+                                                    index === 2 ? 'bg-amber-700/50 text-white' : 'bg-muted/50 text-muted-foreground'}
+                                                `}>
+                                                    {index + 1} {index === 0 && '👑'}
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-5 min-w-0">
+                                                <div className="flex flex-col min-w-0">
+                                                <span className="font-mono text-sm group-hover:text-primary transition-colors truncate">
+                                                    {address.slice(0, 4)}...{address.slice(-4)}
+                                                </span>
+                                                {index === 0 && <span className="text-[10px] font-bold text-primary uppercase tracking-tighter truncate">Island Sovereign</span>}
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-5 text-right">
+                                                <span className="text-xl font-black text-primary">
+                                                    {xp}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    )
+                                })
                             ) : (
                                 <tr>
                                     <td colSpan={3} className="px-8 py-20 text-center">
