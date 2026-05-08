@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient, useConnect } from 'wagmi'
 import { parseEther, formatEther, decodeEventLog } from 'viem'
 import Link from 'next/link'
+import confetti from 'canvas-confetti'
+import { motion, AnimatePresence, useIsPresent } from 'framer-motion'
 import { sdk } from '@farcaster/miniapp-sdk'
 import type { Context } from '@farcaster/miniapp-core'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI, TABLE_TYPES, TABLE_COSTS } from '@/src/constants'
@@ -11,6 +13,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { HelpCircle, Volume2, VolumeX } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function Home() {
   const { isConnected, address } = useAccount()
@@ -24,6 +34,23 @@ export default function Home() {
   const [lastWinAmount, setLastWinAmount] = useState<string | null>(null)
   const [lastProcessedWinnerRound, setLastProcessedWinnerRound] = useState<string | null>(null)
   const [lastCastedHash, setLastCastedHash] = useState<string | null>(null)
+  const [winningLand, setWinningLand] = useState<number | null>(null)
+  const [isMuted, setIsMuted] = useState(true)
+
+  const isMutedRef = React.useRef(isMuted)
+  useEffect(() => {
+    isMutedRef.current = isMuted
+  }, [isMuted])
+
+  const playSound = useCallback((type: 'click' | 'win') => {
+    if (isMutedRef.current) return
+    const sounds = {
+      click: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
+      win: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'
+    }
+    const audio = new Audio(sounds[type])
+    audio.play().catch(e => console.log('Audio play failed:', e))
+  }, [])
 
   // Detect MiniPay and Farcaster
   useEffect(() => {
@@ -134,6 +161,15 @@ export default function Home() {
               ? (farcasterUser?.username ? `@${farcasterUser.username}` : winner.slice(0, 4) + '...' + winner.slice(-4))
               : winner.slice(0, 4) + '...' + winner.slice(-4)
 
+            setWinningLand(winnerLand)
+            playSound('win')
+            confetti({
+              particleCount: 150,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: ['#FFD700', '#FFA500', '#FFFFFF']
+            })
+
             text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${prize} CELO! 🤑\nThe treasure was hidden in Land ${winnerLand}.\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 https://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
           } else {
             const filledCount = currentFilled
@@ -168,6 +204,14 @@ export default function Home() {
         setShowShareWin(true)
         setShowShareJoin(false) // Win takes precedence
         setLastProcessedWinnerRound(latestWinner.roundId)
+
+        playSound('win')
+        confetti({
+          particleCount: 200,
+          spread: 90,
+          origin: { y: 0.6 },
+          colors: ['#FFD700', '#FFA500', '#FFFFFF']
+        })
       }
     }
   }, [recentWinners, address, lastProcessedWinnerRound])
@@ -200,7 +244,9 @@ export default function Home() {
   }, [publicClient, isConfirmed])
 
   const handleJoinGame = (land: number) => {
+    playSound('click')
     if (!isConnected) return
+    setWinningLand(null)
     setLastJoinedLand(land)
     setShowShareJoin(false)
     setShowShareWin(false)
@@ -285,18 +331,73 @@ export default function Home() {
               R#{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
             </span>
 
-            <Button asChild variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
+            <Button onClick={() => playSound('click')} asChild variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
               <Link href="/leaderboard">
                 <span>🏆</span>
                 <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">Leader</span>
               </Link>
             </Button>
 
-            <Button asChild variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
+            <Button onClick={() => playSound('click')} asChild variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
               <Link href="/profile">
                 <span>👤</span>
                 <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">Profile</span>
               </Link>
+            </Button>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button onClick={() => playSound('click')} variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
+                  <HelpCircle className="w-3 h-3" />
+                  <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">How to Play</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-slate-900 border-amber-500/50 text-white max-w-[90vw] rounded-2xl">
+                <DialogHeader>
+                  <DialogTitle className="font-pirata text-2xl text-yellow-500 tracking-widest text-center">
+                    🏝️ How to Play
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="flex gap-3 items-start">
+                    <div className="bg-yellow-500 text-black rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-sm">1</div>
+                    <p className="text-sm">Choose a table: <span className="font-bold text-yellow-400">1 CELO, 5 CELO, or 10 CELO</span></p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="bg-yellow-500 text-black rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-sm">2</div>
+                    <p className="text-sm">Pick a land (1-6) and <span className="font-bold text-yellow-400">stake your CELO</span></p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="bg-yellow-500 text-black rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-sm">3</div>
+                    <p className="text-sm">Wait for all <span className="font-bold text-yellow-400">6 lands to fill</span></p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="bg-yellow-500 text-black rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-sm">4</div>
+                    <p className="text-sm">Winner takes <span className="font-bold text-yellow-400">5/6 of the pot</span> (5x their stake!)</p>
+                  </div>
+                  <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10 text-center">
+                    <p className="text-xs text-white/60 italic">Example: Stake 1 CELO → Win 5 CELO</p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Button
+              onClick={() => {
+                const newMuted = !isMuted
+                setIsMuted(newMuted)
+                if (isMuted) {
+                   // This is a hack to enable audio on user gesture if needed
+                   const a = new Audio()
+                   a.play().catch(() => {})
+                }
+              }}
+              variant="ghost"
+              size="sm"
+              className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0"
+            >
+              {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+              <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">{isMuted ? 'Muted' : 'Sound On'}</span>
             </Button>
           </div>
           <div className="flex items-center gap-1.5 min-w-0 flex-nowrap">
@@ -355,7 +456,10 @@ export default function Home() {
               <Button
                 key={table}
                 variant={isActive ? "default" : "outline"}
-                onClick={() => setSelectedTable(table)}
+                onClick={() => {
+                  playSound('click')
+                  setSelectedTable(table)
+                }}
                 className={`flex-1 h-12 font-bold transition-all border-2 backdrop-blur-md ${
                   isActive ? "shadow-lg shadow-primary/20 bg-primary/80" : "text-muted-foreground bg-card/40"
                 }`}
@@ -445,21 +549,42 @@ export default function Home() {
             const playerAddress = tablePlayers ? (tablePlayers as any)[land] : '0x0000000000000000000000000000000000000000'
             const isOccupied = playerAddress !== '0x0000000000000000000000000000000000000000'
             const isUser = address && playerAddress.toLowerCase() === address.toLowerCase()
+            const isWinner = winningLand === land
 
             return (
-              <Card
+              <motion.div
                 key={land}
-                className={`
-                  relative aspect-[4/5] flex flex-col items-center justify-center p-4
-                  transition-all duration-200 cursor-pointer group border-2
-                  ${!isOccupied
-                    ? 'hover:border-primary/50 bg-black/50 backdrop-blur-sm border-amber-500/30'
-                    : isUser
-                      ? 'border-primary ring-1 ring-primary/20 bg-black/60 backdrop-blur-sm'
-                      : 'opacity-60 bg-black/40 backdrop-blur-sm border-white/10'}
-                `}
-                onClick={() => !isOccupied && handleJoinGame(land)}
+                initial={false}
+                whileHover={{ scale: isOccupied ? 1 : 1.05 }}
+                whileTap={{ scale: isOccupied ? 1 : 0.95 }}
+                animate={isWinner ? {
+                  scale: [1, 1.05, 1],
+                  boxShadow: [
+                    "0 0 0px rgba(255, 215, 0, 0)",
+                    "0 0 20px rgba(255, 215, 0, 0.6)",
+                    "0 0 0px rgba(255, 215, 0, 0)"
+                  ]
+                } : {}}
+                transition={isWinner ? {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                } : {}}
               >
+                <Card
+                  className={`
+                    relative aspect-[4/5] flex flex-col items-center justify-center p-4
+                    transition-all duration-200 cursor-pointer group border-2 h-full
+                    ${isWinner
+                      ? 'border-yellow-400 bg-yellow-400/20 shadow-[0_0_15px_rgba(255,215,0,0.4)] z-10'
+                      : !isOccupied
+                        ? 'hover:border-primary/50 bg-black/50 backdrop-blur-sm border-amber-500/30'
+                        : isUser
+                          ? 'border-primary ring-1 ring-primary/20 bg-black/60 backdrop-blur-sm'
+                          : 'opacity-60 bg-black/40 backdrop-blur-sm border-white/10'}
+                  `}
+                  onClick={() => !isOccupied && handleJoinGame(land)}
+                >
                 <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center text-xl transition-transform group-hover:scale-110 ${
                     isOccupied
                         ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
@@ -479,7 +604,13 @@ export default function Home() {
                       <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                    </div>
                 )}
-              </Card>
+                {isWinner && (
+                  <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg animate-bounce">
+                    WINNER
+                  </div>
+                )}
+                </Card>
+              </motion.div>
             )
           })}
         </div>
