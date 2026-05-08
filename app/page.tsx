@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient, useConnect } from 'wagmi'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient, useConnect, useWatchContractEvent } from 'wagmi'
 import { parseEther, formatEther, decodeEventLog } from 'viem'
 import Link from 'next/link'
 import confetti from 'canvas-confetti'
@@ -84,6 +84,26 @@ export default function Home() {
     }
   }, [isMiniPay, isConnected, connect, connectors])
   const [recentWinners, setRecentWinners] = useState<any[]>([])
+
+  // Load winners from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('recent_winners')
+    if (saved) {
+      try {
+        setRecentWinners(JSON.parse(saved))
+      } catch (e) {
+        console.error('Failed to parse saved winners', e)
+      }
+    }
+  }, [])
+
+  // Save winners to localStorage when state changes
+  useEffect(() => {
+    if (recentWinners.length > 0) {
+      localStorage.setItem('recent_winners', JSON.stringify(recentWinners))
+    }
+  }, [recentWinners])
+
   const publicClient = usePublicClient()
 
   const tableIndex = (TABLE_TYPES as any)[selectedTable]
@@ -228,20 +248,50 @@ export default function Home() {
           toBlock: 'latest',
         })
 
-        const formattedWinners = logs.reverse().slice(0, 5).map((log: any) => ({
+        const formattedWinners = logs.reverse().slice(0, 10).map((log: any) => ({
           address: log.args.winner,
           amount: formatEther(log.args.prize),
           tableType: log.args.tableType === 0 ? 'BRONZE' : log.args.tableType === 1 ? 'SILVER' : 'GOLD',
           land: Number(log.args.winningLand),
-          roundId: log.blockNumber.toString().slice(-5)
+          roundId: log.blockNumber.toString().slice(-5),
+          hash: log.transactionHash
         }))
-        setRecentWinners(formattedWinners)
+
+        setRecentWinners(prev => {
+            // Merge with existing and remove duplicates based on hash
+            const combined = [...formattedWinners, ...prev]
+            const unique = combined.filter((v, i, a) => a.findIndex(t => t.hash === v.hash) === i)
+            return unique.slice(0, 10)
+        })
       } catch (e) {
         console.error('Error fetching winners:', e)
       }
     }
     fetchWinners()
   }, [publicClient, isConfirmed])
+
+  // Real-time listener for TableFilled events
+  useWatchContractEvent({
+    address: CONTRACT_ADDRESS as `0x${string}`,
+    abi: FIND_CELO_ABI,
+    eventName: 'TableFilled',
+    onLogs(logs) {
+      const newWinners = logs.map((log: any) => ({
+        address: log.args.winner,
+        amount: formatEther(log.args.prize),
+        tableType: log.args.tableType === 0 ? 'BRONZE' : log.args.tableType === 1 ? 'SILVER' : 'GOLD',
+        land: Number(log.args.winningLand),
+        roundId: log.blockNumber.toString().slice(-5),
+        hash: log.transactionHash
+      }))
+
+      setRecentWinners(prev => {
+        const combined = [...newWinners, ...prev]
+        const unique = combined.filter((v, i, a) => a.findIndex(t => t.hash === v.hash) === i)
+        return unique.slice(0, 10)
+      })
+    },
+  })
 
   const handleJoinGame = (land: number) => {
     playSound('click')
@@ -620,10 +670,10 @@ export default function Home() {
             <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2 px-1">
                 👑 Recent Winners
             </h2>
-            <div className="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden border border-white/10 shadow-xl divide-y divide-white/5">
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden border border-white/10 shadow-xl divide-y divide-white/5 max-h-[250px] overflow-y-auto custom-scrollbar">
                 {recentWinners.length > 0 ? (
-                    recentWinners.slice(0, 3).map((winner, i) => (
-                        <div key={i} className="px-3 py-2 flex items-center justify-between hover:bg-white/5 transition-colors group">
+                    recentWinners.map((winner, i) => (
+                        <div key={winner.hash || i} className="px-3 py-2 flex items-center justify-between hover:bg-white/5 transition-colors group">
                             <div className="flex items-center gap-2 min-w-0">
                                 <div className="min-w-0">
                                     <div className="flex items-center gap-1.5 flex-nowrap">
