@@ -623,31 +623,33 @@ export default function Home() {
               >
                 <Card
                   className={`
-                    relative aspect-[4/5] flex flex-col items-center justify-center p-4
+                    relative flex flex-col items-center justify-start overflow-hidden
                     transition-all duration-200 cursor-pointer group border-2 h-full
                     ${isWinner
                       ? 'border-yellow-400 bg-yellow-400/20 shadow-[0_0_15px_rgba(255,215,0,0.4)] z-10'
                       : !isOccupied
-                        ? 'hover:border-primary/50 bg-black/50 backdrop-blur-sm border-amber-500/30'
+                        ? 'hover:border-primary/50 bg-black/30 backdrop-blur-sm border-amber-500/30'
                         : isUser
                           ? 'border-primary ring-1 ring-primary/20 bg-black/60 backdrop-blur-sm'
                           : 'opacity-60 bg-black/40 backdrop-blur-sm border-white/10'}
                   `}
                   onClick={() => !isOccupied && handleJoinGame(land)}
                 >
-                <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center text-xl transition-transform group-hover:scale-110 ${
-                    isOccupied
-                        ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
-                        : 'bg-secondary/50'
-                }`}>
-                   <img src="/images/treasure-chest.png" alt="Land" className="w-10 h-10" />
-                </div>
-                <span className="text-[14px] font-bold uppercase text-yellow-200 block w-full truncate text-center">
-                   {land}
-                </span>
-                <span className="text-[11px] font-bold uppercase text-yellow-200/80 block w-full truncate text-center">
-                   {isOccupied ? (isUser ? (farcasterUser ? `@${farcasterUser.username}` : 'YOU') : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
-                </span>
+                  <div className="w-full aspect-square relative overflow-hidden bg-black/20">
+                    <img
+                      src="/images/treasure-chest.png"
+                      alt="Land"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-2 w-full flex flex-col items-center">
+                    <span className="text-[14px] font-bold uppercase text-yellow-200 block w-full truncate text-center">
+                       {land}
+                    </span>
+                    <span className="text-[11px] font-bold uppercase text-yellow-200/80 block w-full truncate text-center">
+                       {isOccupied ? (isUser ? (farcasterUser ? `@${farcasterUser.username}` : 'YOU') : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
+                    </span>
+                  </div>
 
                 {isConfirming && !isOccupied && (
                    <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] rounded-lg flex items-center justify-center">
