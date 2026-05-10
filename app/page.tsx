@@ -83,6 +83,7 @@ export default function Home() {
       }
     }
   }, [isMiniPay, isConnected, connect, connectors])
+  
   const [recentWinners, setRecentWinners] = useState<any[]>([])
 
   // Load winners from localStorage on mount
