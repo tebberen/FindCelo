@@ -23,7 +23,7 @@ export function middleware(request: NextRequest) {
     request.nextUrl.pathname === '/' &&
     acceptHeader?.includes('application/vnd.farcaster.snap+json')
   ) {
-    response = NextResponse.rewrite(new URL('/snap', request.url))
+    response = NextResponse.rewrite(new URL('/api/snap', request.url))
   } else {
     response = NextResponse.next()
   }
@@ -37,7 +37,7 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === '/') {
     response.headers.set(
       'Link',
-      '</snap>; rel="alternate"; type="application/vnd.farcaster.snap+json"'
+      '</api/snap>; rel="alternate"; type="application/vnd.farcaster.snap+json"'
     )
   }
 

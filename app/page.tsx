@@ -1,20 +1,110 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient } from 'wagmi'
-import { parseEther, formatEther } from 'viem'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient, useConnect, useWatchContractEvent } from 'wagmi'
+import { parseEther, formatEther, decodeEventLog } from 'viem'
 import Link from 'next/link'
+import confetti from 'canvas-confetti'
+import { motion, AnimatePresence, useIsPresent } from 'framer-motion'
+import { sdk } from '@farcaster/miniapp-sdk'
+import type { Context } from '@farcaster/miniapp-core'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI, TABLE_TYPES, TABLE_COSTS } from '@/src/constants'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { HelpCircle, Volume2, VolumeX } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function Home() {
   const { isConnected, address } = useAccount()
+  const { connect, connectors } = useConnect()
   const [selectedTable, setSelectedTable] = useState('BRONZE')
+  const [isMiniPay, setIsMiniPay] = useState(false)
+  const [farcasterUser, setFarcasterUser] = useState<Context.UserContext | null>(null)
+  const [showShareJoin, setShowShareJoin] = useState(false)
+  const [showShareWin, setShowShareWin] = useState(false)
+  const [lastJoinedLand, setLastJoinedLand] = useState<number | null>(null)
+  const [lastWinAmount, setLastWinAmount] = useState<string | null>(null)
+  const [lastProcessedWinnerRound, setLastProcessedWinnerRound] = useState<string | null>(null)
+  const [lastCastedHash, setLastCastedHash] = useState<string | null>(null)
+  const [winningLand, setWinningLand] = useState<number | null>(null)
+  const [isMuted, setIsMuted] = useState(true)
+
+  const isMutedRef = React.useRef(isMuted)
+  useEffect(() => {
+    isMutedRef.current = isMuted
+  }, [isMuted])
+
+  const playSound = useCallback((type: 'click' | 'win') => {
+    if (isMutedRef.current) return
+    const sounds = {
+      click: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
+      win: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'
+    }
+    const audio = new Audio(sounds[type])
+    audio.play().catch(e => console.log('Audio play failed:', e))
+  }, [])
+
+  // Detect MiniPay and Farcaster
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).ethereum?.isMiniPay) {
+      setIsMiniPay(true)
+    }
+
+    const loadFarcaster = async () => {
+      const context = await sdk.context
+      if (context?.user) {
+        setFarcasterUser(context.user)
+      }
+    }
+    loadFarcaster()
+  }, [])
+
+  // Auto-connect
+  useEffect(() => {
+    if (!isConnected && connectors.length > 0) {
+      if (isMiniPay) {
+        const injectedConnector = connectors.find(c => c.id === 'injected')
+        if (injectedConnector) {
+          connect({ connector: injectedConnector })
+        }
+      } else {
+        const farcasterConnector = connectors.find(c => c.id === 'farcasterMiniApp')
+        if (farcasterConnector) {
+          connect({ connector: farcasterConnector })
+        }
+      }
+    }
+  }, [isMiniPay, isConnected, connect, connectors])
+  
   const [recentWinners, setRecentWinners] = useState<any[]>([])
+
+  // Load winners from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('recent_winners')
+    if (saved) {
+      try {
+        setRecentWinners(JSON.parse(saved))
+      } catch (e) {
+        console.error('Failed to parse saved winners', e)
+      }
+    }
+  }, [])
+
+  // Save winners to localStorage when state changes
+  useEffect(() => {
+    if (recentWinners.length > 0) {
+      localStorage.setItem('recent_winners', JSON.stringify(recentWinners))
+    }
+  }, [recentWinners])
+
   const publicClient = usePublicClient()
 
   const tableIndex = (TABLE_TYPES as any)[selectedTable]
@@ -37,17 +127,115 @@ export default function Home() {
 
   const { data: hash, writeContract, isPending } = useWriteContract()
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  const { data: receipt, isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     })
 
   useEffect(() => {
-    if (isConfirmed) {
-      refetchPlayers()
-      refetchTableInfo()
+    if (isConfirmed && receipt && hash && hash !== lastCastedHash) {
+      setLastCastedHash(hash)
+
+      const triggerAutoCast = async () => {
+        try {
+          // Need latest table state for accurate seatsFilled
+          const { data: latestTableInfo } = await refetchTableInfo()
+          refetchPlayers()
+
+          let currentFilled = 0
+          if (latestTableInfo) {
+             if (typeof latestTableInfo === 'object') {
+               currentFilled = Number((latestTableInfo as any).seatsFilled || 0)
+             } else {
+               currentFilled = Number(latestTableInfo)
+             }
+          }
+
+          // Check for TableFilled event
+          const tableFilledLog = receipt.logs.find(log => {
+            try {
+              const decoded = decodeEventLog({
+                abi: FIND_CELO_ABI,
+                data: log.data,
+                topics: log.topics,
+              })
+              return decoded.eventName === 'TableFilled'
+            } catch {
+              return false
+            }
+          })
+
+          let text = ''
+          const username = farcasterUser?.username ? `@${farcasterUser.username}` : (address?.slice(0, 4) + '...' + address?.slice(-4))
+
+          if (tableFilledLog) {
+            const decoded = decodeEventLog({
+              abi: FIND_CELO_ABI,
+              data: tableFilledLog.data,
+              topics: tableFilledLog.topics,
+            }) as any
+
+            const winner = decoded.args.winner
+            const prize = formatEther(decoded.args.prize)
+            const winnerLand = Number(decoded.args.winningLand)
+            const winnerUsername = winner.toLowerCase() === address?.toLowerCase()
+              ? (farcasterUser?.username ? `@${farcasterUser.username}` : winner.slice(0, 4) + '...' + winner.slice(-4))
+              : winner.slice(0, 4) + '...' + winner.slice(-4)
+
+            setWinningLand(winnerLand)
+            playSound('win')
+            confetti({
+              particleCount: 150,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: ['#FFD700', '#FFA500', '#FFFFFF']
+            })
+
+            text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${prize} CELO! 🤑\nThe treasure was hidden in Land ${winnerLand}.\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 https://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+          } else {
+            const filledCount = currentFilled
+            const emptyCount = 6 - filledCount
+
+            text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\nhttps://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+          }
+
+          await sdk.actions.composeCast({
+            text,
+            embeds: ['https://find-celo.vercel.app']
+          })
+        } catch (error) {
+          console.error('Error triggering auto-cast:', error)
+          setShowShareJoin(true)
+        }
+      }
+
+      triggerAutoCast()
     }
-  }, [isConfirmed, refetchPlayers, refetchTableInfo])
+  }, [isConfirmed, receipt, hash, lastCastedHash, refetchPlayers, refetchTableInfo, farcasterUser, address, lastJoinedLand])
+
+  // Monitor for wins
+  useEffect(() => {
+    if (recentWinners.length > 0 && address) {
+      const latestWinner = recentWinners[0]
+      if (
+        latestWinner.address.toLowerCase() === address.toLowerCase() &&
+        latestWinner.roundId !== lastProcessedWinnerRound
+      ) {
+        setLastWinAmount(latestWinner.amount)
+        setShowShareWin(true)
+        setShowShareJoin(false) // Win takes precedence
+        setLastProcessedWinnerRound(latestWinner.roundId)
+
+        playSound('win')
+        confetti({
+          particleCount: 200,
+          spread: 90,
+          origin: { y: 0.6 },
+          colors: ['#FFD700', '#FFA500', '#FFFFFF']
+        })
+      }
+    }
+  }, [recentWinners, address, lastProcessedWinnerRound])
 
   // Fetch Recent Winners from Events
   useEffect(() => {
@@ -61,14 +249,21 @@ export default function Home() {
           toBlock: 'latest',
         })
 
-        const formattedWinners = logs.reverse().slice(0, 5).map((log: any) => ({
+        const formattedWinners = logs.reverse().slice(0, 10).map((log: any) => ({
           address: log.args.winner,
           amount: formatEther(log.args.prize),
           tableType: log.args.tableType === 0 ? 'BRONZE' : log.args.tableType === 1 ? 'SILVER' : 'GOLD',
           land: Number(log.args.winningLand),
-          roundId: log.blockNumber.toString().slice(-5)
+          roundId: log.blockNumber.toString().slice(-5),
+          hash: log.transactionHash
         }))
-        setRecentWinners(formattedWinners)
+
+        setRecentWinners(prev => {
+            // Merge with existing and remove duplicates based on hash
+            const combined = [...formattedWinners, ...prev]
+            const unique = combined.filter((v, i, a) => a.findIndex(t => t.hash === v.hash) === i)
+            return unique.slice(0, 10)
+        })
       } catch (e) {
         console.error('Error fetching winners:', e)
       }
@@ -76,8 +271,36 @@ export default function Home() {
     fetchWinners()
   }, [publicClient, isConfirmed])
 
+  // Real-time listener for TableFilled events
+  useWatchContractEvent({
+    address: CONTRACT_ADDRESS as `0x${string}`,
+    abi: FIND_CELO_ABI,
+    eventName: 'TableFilled',
+    onLogs(logs) {
+      const newWinners = logs.map((log: any) => ({
+        address: log.args.winner,
+        amount: formatEther(log.args.prize),
+        tableType: log.args.tableType === 0 ? 'BRONZE' : log.args.tableType === 1 ? 'SILVER' : 'GOLD',
+        land: Number(log.args.winningLand),
+        roundId: log.blockNumber.toString().slice(-5),
+        hash: log.transactionHash
+      }))
+
+      setRecentWinners(prev => {
+        const combined = [...newWinners, ...prev]
+        const unique = combined.filter((v, i, a) => a.findIndex(t => t.hash === v.hash) === i)
+        return unique.slice(0, 10)
+      })
+    },
+  })
+
   const handleJoinGame = (land: number) => {
+    playSound('click')
     if (!isConnected) return
+    setWinningLand(null)
+    setLastJoinedLand(land)
+    setShowShareJoin(false)
+    setShowShareWin(false)
 
     writeContract({
       address: CONTRACT_ADDRESS as `0x${string}`,
@@ -86,6 +309,38 @@ export default function Home() {
       args: [BigInt(land), '0x0000000000000000000000000000000000000000', tableIndex],
       value: parseEther(tableCost),
     })
+  }
+
+  const handleShareJoin = async () => {
+    const username = farcasterUser?.username ? `@${farcasterUser.username}` : (address?.slice(0, 4) + '...' + address?.slice(-4))
+    const filledCount = seatsFilled
+    const emptyCount = 6 - filledCount
+    const text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\nhttps://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+
+    try {
+      await sdk.actions.composeCast({
+        text,
+        embeds: ['https://find-celo.vercel.app']
+      })
+      setShowShareJoin(false)
+    } catch (error) {
+      console.error('Error sharing join:', error)
+    }
+  }
+
+  const handleShareWin = async () => {
+    const winnerUsername = farcasterUser?.username ? `@${farcasterUser.username}` : address?.slice(0, 4) + '...' + address?.slice(-4)
+    const text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${lastWinAmount} CELO! 🤑\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 https://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+
+    try {
+      await sdk.actions.composeCast({
+        text,
+        embeds: ['https://find-celo.vercel.app']
+      })
+      setShowShareWin(false)
+    } catch (error) {
+      console.error('Error sharing win:', error)
+    }
   }
 
   const seatsFilled = useMemo(() => {
@@ -106,45 +361,156 @@ export default function Home() {
   const userLand = playersList.findIndex((p: string) => p.toLowerCase() === address?.toLowerCase()) + 1
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 text-foreground font-sans selection:bg-primary/30">
+    <main className="min-h-screen bg-transparent flex items-start justify-center p-0 text-foreground font-sans selection:bg-primary/30">
       <div
-        className="w-full max-w-[500px] rounded-[24px] overflow-hidden relative shadow-2xl"
-        style={{
-          backgroundImage: "url('/images/background.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
+        className="w-full max-w-[500px] rounded-[24px] overflow-hidden relative shadow-2xl bg-card bg-[url('/images/background.png')] bg-cover bg-center bg-no-repeat [image-rendering:crisp-edges] [image-rendering:-webkit-optimize-contrast]"
       >
-        <div className="space-y-8 p-6 md:p-8 relative z-10">
+        <div className="space-y-2 pt-3 px-3 pb-48 relative z-10">
 
         {/* TOP SECTION */}
-        <div className="flex justify-between items-center bg-black/40 backdrop-blur-sm p-4 rounded-xl border border-white/10">
-          <div className="flex items-center gap-3">
-            <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold">
+        <div className="sticky top-0 z-20 flex justify-between items-center bg-black/60 backdrop-blur-md p-2 rounded-xl border border-white/10 flex-nowrap gap-2 overflow-hidden">
+          <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden shrink-0 min-w-0">
+            <Badge variant="destructive" className="animate-pulse flex gap-1 items-center px-1.5 py-0.5 uppercase tracking-wider text-[9px] font-bold shrink-0">
               Live
             </Badge>
-            <span className="text-[10px] font-bold text-white uppercase tracking-widest">
-              Round #{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
+            {isMiniPay && (
+              <Badge variant="outline" className="flex gap-1 items-center px-1.5 py-0.5 uppercase tracking-wider text-[9px] font-bold border-yellow-500/50 text-yellow-500 bg-yellow-500/10 shrink-0">
+                MiniPay
+              </Badge>
+            )}
+            <span className="text-[9px] font-bold text-white uppercase tracking-wider shrink-0">
+              R#{(tableIndex * 1000 + (seatsFilled || 0)).toString().padStart(5, '0')}
             </span>
+
+            <Button onClick={() => playSound('click')} asChild variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
+              <Link href="/leaderboard">
+                <span>🏆</span>
+                <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">Leader</span>
+              </Link>
+            </Button>
+
+            <Button onClick={() => playSound('click')} asChild variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
+              <Link href="/profile">
+                <span>👤</span>
+                <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">Profile</span>
+              </Link>
+            </Button>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button onClick={() => playSound('click')} variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
+                  <HelpCircle className="w-3 h-3" />
+                  <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">How to Play</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-slate-900 border-amber-500/50 text-white max-w-[90vw] rounded-2xl">
+                <DialogHeader>
+                  <DialogTitle className="font-pirata text-2xl text-yellow-500 tracking-widest text-center">
+                    🏝️ How to Play
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="flex gap-3 items-start">
+                    <div className="bg-yellow-500 text-black rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-sm">1</div>
+                    <p className="text-sm">Choose a table: <span className="font-bold text-yellow-400">1 CELO, 5 CELO, or 10 CELO</span></p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="bg-yellow-500 text-black rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-sm">2</div>
+                    <p className="text-sm">Pick a land (1-6) and <span className="font-bold text-yellow-400">stake your CELO</span></p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="bg-yellow-500 text-black rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-sm">3</div>
+                    <p className="text-sm">Wait for all <span className="font-bold text-yellow-400">6 lands to fill</span></p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="bg-yellow-500 text-black rounded-full w-6 h-6 flex items-center justify-center shrink-0 font-bold text-sm">4</div>
+                    <p className="text-sm">Winner takes <span className="font-bold text-yellow-400">5/6 of the pot</span> (5x their stake!)</p>
+                  </div>
+                  <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10 text-center">
+                    <p className="text-xs text-white/60 italic">Example: Stake 1 CELO → Win 5 CELO</p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Button
+              onClick={() => {
+                const newMuted = !isMuted
+                setIsMuted(newMuted)
+                if (isMuted) {
+                   // This is a hack to enable audio on user gesture if needed
+                   const a = new Audio()
+                   a.play().catch(() => {})
+                }
+              }}
+              variant="ghost"
+              size="sm"
+              className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0"
+            >
+              {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+              <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">{isMuted ? 'Muted' : 'Sound On'}</span>
+            </Button>
           </div>
-          <ConnectButton accountStatus="avatar" chainStatus="icon" showBalance={false} />
+          <div className="flex items-center gap-1.5 min-w-0 flex-nowrap">
+            {isConnected && farcasterUser && (
+              <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0.5 rounded-full border border-white/10 min-w-0">
+                <img
+                  src={farcasterUser.pfpUrl}
+                  alt={farcasterUser.username}
+                  className="w-4 h-4 rounded-full border border-primary/50 shrink-0"
+                />
+                <span className="text-[9px] font-bold text-white uppercase tracking-wider truncate max-w-[70px]">
+                  @{farcasterUser.username}
+                </span>
+              </div>
+            )}
+            {isConnected && !farcasterUser && (
+              <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0.5 rounded-full border border-white/10 min-w-0">
+                <div className="w-4 h-4 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-[8px] shrink-0">
+                  👤
+                </div>
+                <span className="text-[9px] font-bold text-white uppercase tracking-wider truncate max-w-[70px]">
+                  {address?.slice(0, 4)}...{address?.slice(-4)}
+                </span>
+              </div>
+            )}
+            {!isConnected && (
+              <Button
+                onClick={() => {
+                  const connector = isMiniPay
+                    ? connectors.find(c => c.id === 'injected')
+                    : connectors.find(c => c.id === 'farcasterMiniApp');
+                  if (connector) connect({ connector });
+                }}
+                variant="default"
+                size="sm"
+                className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider shrink-0"
+              >
+                Connect
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* HEADER SECTION */}
-        <h1 className="text-center text-3xl font-bold text-[#FFD700] tracking-wider mb-4">
-          FIND CELO
-        </h1>
+        <div className="flex justify-center mb-1">
+          <h1 className="font-pirata text-3xl whitespace-nowrap tracking-widest bg-black/60 backdrop-blur-md px-8 py-3 rounded-2xl text-[#FFD700] [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] border border-white/10">
+            ✦ Treasure Island ✦
+          </h1>
+        </div>
 
         {/* TABLE SELECTION */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 my-1">
           {Object.keys(TABLE_TYPES).map((table) => {
             const isActive = selectedTable === table
             return (
               <Button
                 key={table}
                 variant={isActive ? "default" : "outline"}
-                onClick={() => setSelectedTable(table)}
+                onClick={() => {
+                  playSound('click')
+                  setSelectedTable(table)
+                }}
                 className={`flex-1 h-12 font-bold transition-all border-2 backdrop-blur-md ${
                   isActive ? "shadow-lg shadow-primary/20 bg-primary/80" : "text-muted-foreground bg-card/40"
                 }`}
@@ -158,7 +524,7 @@ export default function Home() {
         {/* POT CARD */}
         <Card className="border-border bg-card/60 backdrop-blur-md overflow-hidden relative border-2">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
-          <CardHeader className="pb-2">
+          <CardHeader className="p-3">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Current Pot 💰</CardDescription>
@@ -181,7 +547,7 @@ export default function Home() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 pt-0">
             <div className="bg-muted/50 rounded-xl p-3 flex items-center justify-center gap-2 border border-border/50">
                <span className="text-sm">👑</span>
                <span className="text-xs font-medium">
@@ -193,104 +559,154 @@ export default function Home() {
 
         <Separator className="bg-border/50" />
 
+        {/* STATUS MESSAGE */}
+        <div className="flex flex-col gap-3 my-1">
+          <div className="text-center h-auto flex items-center justify-center bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/10 shadow-xl">
+             {userLand > 0 ? (
+                <p className="text-sm font-bold text-white">
+                   You're in land <span className="text-yellow-400 font-black">#{userLand}</span> — waiting for <span className="text-yellow-400 font-black">{6 - seatsFilled}</span> more
+                </p>
+             ) : (
+                <p className="text-sm font-bold text-white/80 flex gap-1.5 items-center">
+                  Select a land to join the voyage
+                </p>
+             )}
+          </div>
+
+          {(showShareJoin || showShareWin) && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+              <Button
+                onClick={showShareWin ? handleShareWin : handleShareJoin}
+                className="w-full h-12 font-black uppercase tracking-widest bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white border-none shadow-lg shadow-blue-500/20 group"
+              >
+                {showShareWin ? (
+                  <span className="flex items-center gap-2">
+                    🎉 Share Win to Farcaster
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    📢 Arkadaşını Davet Et
+                  </span>
+                )}
+                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              </Button>
+            </div>
+          )}
+        </div>
+
         {/* LAND GRID */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-1">
           {[1, 2, 3, 4, 5, 6].map((land) => {
             const playerAddress = tablePlayers ? (tablePlayers as any)[land] : '0x0000000000000000000000000000000000000000'
             const isOccupied = playerAddress !== '0x0000000000000000000000000000000000000000'
             const isUser = address && playerAddress.toLowerCase() === address.toLowerCase()
+            const isWinner = winningLand === land
 
             return (
-              <Card
+              <motion.div
                 key={land}
-                className={`
-                  relative aspect-[4/5] flex flex-col items-center justify-center p-2
-                  transition-all duration-200 cursor-pointer group border-2
-                  ${!isOccupied
-                    ? 'hover:border-primary/50 bg-black/50 backdrop-blur-sm border-amber-500/30'
-                    : isUser
-                      ? 'border-primary ring-1 ring-primary/20 bg-black/60 backdrop-blur-sm'
-                      : 'opacity-60 bg-black/40 backdrop-blur-sm border-white/10'}
-                `}
-                onClick={() => !isOccupied && handleJoinGame(land)}
+                initial={false}
+                whileHover={{ scale: isOccupied ? 1 : 1.05 }}
+                whileTap={{ scale: isOccupied ? 1 : 0.95 }}
+                animate={isWinner ? {
+                  scale: [1, 1.05, 1],
+                  boxShadow: [
+                    "0 0 0px rgba(255, 215, 0, 0)",
+                    "0 0 20px rgba(255, 215, 0, 0.6)",
+                    "0 0 0px rgba(255, 215, 0, 0)"
+                  ]
+                } : {}}
+                transition={isWinner ? {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                } : {}}
               >
-                <div className={`w-10 h-10 rounded-full mb-2 flex items-center justify-center text-xl transition-transform group-hover:scale-110 ${
-                    isOccupied
-                        ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
-                        : 'bg-secondary/50'
-                }`}>
-                   {isOccupied ? '🚩' : '⛺'}
-                </div>
-                <span className="text-[10px] font-bold uppercase text-yellow-200 mb-1">
-                  {isOccupied ? '🚩' : '⛺'} {land} | {isOccupied ? (isUser ? 'YOU' : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
-                </span>
+                <Card
+                  className={`
+                    relative flex flex-col items-center justify-start overflow-hidden
+                    transition-all duration-200 cursor-pointer group border-2 h-full
+                    ${isWinner
+                      ? 'border-yellow-400 bg-yellow-400/20 shadow-[0_0_15px_rgba(255,215,0,0.4)] z-10'
+                      : !isOccupied
+                        ? 'hover:border-primary/50 bg-black/30 backdrop-blur-sm border-amber-500/30'
+                        : isUser
+                          ? 'border-primary ring-1 ring-primary/20 bg-black/60 backdrop-blur-sm'
+                          : 'opacity-60 bg-black/40 backdrop-blur-sm border-white/10'}
+                  `}
+                  onClick={() => !isOccupied && handleJoinGame(land)}
+                >
+                  <div className="w-full aspect-square relative overflow-hidden bg-black/20">
+                    <img
+                      src="/images/treasure-chest.png"
+                      alt="Land"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-2 w-full flex flex-col items-center">
+                    <span className="text-[14px] font-bold uppercase text-yellow-200 block w-full truncate text-center">
+                       {land}
+                    </span>
+                    <span className="text-[11px] font-bold uppercase text-yellow-200/80 block w-full truncate text-center">
+                       {isOccupied ? (isUser ? (farcasterUser ? `@${farcasterUser.username}` : 'YOU') : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
+                    </span>
+                  </div>
 
                 {isConfirming && !isOccupied && (
                    <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] rounded-lg flex items-center justify-center">
                       <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                    </div>
                 )}
-              </Card>
+                {isWinner && (
+                  <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg animate-bounce">
+                    WINNER
+                  </div>
+                )}
+                </Card>
+              </motion.div>
             )
           })}
         </div>
 
-        {/* STATUS MESSAGE */}
-        <div className="text-center h-auto flex items-center justify-center bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/10 shadow-xl my-4">
-           {userLand > 0 ? (
-              <p className="text-sm font-bold text-white">
-                 You're in land <span className="text-yellow-400 font-black">#{userLand}</span> — waiting for <span className="text-yellow-400 font-black">{6 - seatsFilled}</span> more
-              </p>
-           ) : (
-              <p className="text-sm font-bold text-white/80 flex gap-1.5 items-center">
-                Select a land to join the voyage
-              </p>
-           )}
+        {/* RECENT WINNERS */}
+        <div className="space-y-2">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2 px-1">
+                👑 Recent Winners
+            </h2>
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden border border-white/10 shadow-xl divide-y divide-white/5 max-h-[250px] overflow-y-auto custom-scrollbar">
+                {recentWinners.length > 0 ? (
+                    recentWinners.map((winner, i) => (
+                        <div key={winner.hash || i} className="px-3 py-2 flex items-center justify-between hover:bg-white/5 transition-colors group">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5 flex-nowrap">
+                                        <span className="text-[10px] font-mono font-bold text-white truncate">
+                                            {winner.address.slice(0, 4)}...{winner.address.slice(-4)}
+                                        </span>
+                                        <Badge variant="outline" className="text-[8px] px-1 py-0 border-primary/20 text-primary shrink-0 h-3.5 uppercase font-black">
+                                            {winner.tableType}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                                <span className="text-xs font-black text-[#FFD700]">+{winner.amount} CELO</span>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="px-3 py-4 text-center">
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-50">
+                            The island is quiet...
+                        </span>
+                    </div>
+                )}
+            </div>
         </div>
 
-        {/* RECENT WINNERS */}
-        <Card className="border-border/50 bg-card/60 backdrop-blur-md border-2">
-          <CardHeader className="py-4 px-6 border-b border-border/50">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-sm font-bold text-white uppercase tracking-widest">👑 Recent Winners</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border/50">
-              {recentWinners.length > 0 ? (
-                recentWinners.map((winner, i) => (
-                  <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-bold">{winner.address.slice(0, 6)}...{winner.address.slice(-4)}</span>
-                          <Badge variant="outline" className="text-[8px] px-1 py-0 border-primary/20 text-primary">{winner.tableType}</Badge>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground block mt-0.5">Won at Land #{winner.land} • Round #{winner.roundId}</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                       <span className="text-sm font-black text-primary">+{winner.amount} CELO</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-10 text-center text-white/90 text-sm italic font-medium">
-                   The island is quiet... for now.
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* FOOTER */}
-        <footer className="bg-black/60 backdrop-blur-md rounded-2xl p-6 w-full border border-white/10 mt-4 flex flex-col items-center gap-6 pt-4 pb-8">
-          <div className="flex justify-center gap-8">
-             <Link href="/leaderboard" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Leaderboard</Link>
-             <Link href="/profile" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Profile</Link>
-             <Link href="/api" className="text-sm font-bold text-white hover:text-yellow-400 transition-colors uppercase tracking-widest flex items-center gap-1.5">Play Frame</Link>
-          </div>
-          <p className="text-xs font-bold text-yellow-500/60 uppercase tracking-[0.3em]">Built on Celo</p>
+        <footer className="w-full p-4 flex justify-center">
+          <p className="text-sm font-bold text-[#FFD700] text-center">Built on Celo</p>
         </footer>
         </div>
       </div>

@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
                     return [`land-${i}`, {
                         "type": "button",
                         "props": {
-                            "label": `${i} ${isOccupied ? '🚩' : '⛺'}`,
+                            "label": `${i} 🪙`,
                             "variant": isOccupied ? "secondary" : "primary"
                         },
                         "on": {
