@@ -67,6 +67,17 @@ export default function Home() {
     loadFarcaster()
   }, [])
 
+  // Register user FID mapping
+  useEffect(() => {
+    if (isConnected && address && farcasterUser?.fid) {
+      fetch('/api/user/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, fid: farcasterUser.fid })
+      }).catch(err => console.error('Failed to register user:', err))
+    }
+  }, [isConnected, address, farcasterUser])
+
   // Auto-connect
   useEffect(() => {
     if (!isConnected && connectors.length > 0) {
@@ -178,6 +189,15 @@ export default function Home() {
             const winner = decoded.args.winner
             const prize = formatEther(decoded.args.prize)
             const winnerLand = Number(decoded.args.winningLand)
+
+            // Trigger notifications
+            fetch('/api/notify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                txHash: receipt.transactionHash
+              })
+            }).catch(err => console.error('Failed to trigger notifications:', err))
             const winnerUsername = winner.toLowerCase() === address?.toLowerCase()
               ? (farcasterUser?.username ? `@${farcasterUser.username}` : winner.slice(0, 4) + '...' + winner.slice(-4))
               : winner.slice(0, 4) + '...' + winner.slice(-4)
@@ -585,7 +605,7 @@ export default function Home() {
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
-                    📢 Arkadaşını Davet Et
+                    📢 Invite Friends
                   </span>
                 )}
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
