@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useReadContract, useReadContracts, usePublicClient } from 'wagmi'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI } from '@/src/constants'
 import { formatEther } from 'viem'
@@ -29,6 +29,19 @@ export default function Leaderboard() {
       enabled: !!leaderboard && (leaderboard as any[]).length > 0,
     }
   })
+
+  const leaderboardWithXP = useMemo(() => {
+    if (!leaderboard || !profiles) return []
+
+    return (leaderboard as `0x${string}`[]).map((address, index) => {
+      const profileResult = profiles[index]?.result as any
+      return {
+        address,
+        xp: profileResult?.totalXP ? Number(profileResult.totalXP) : 0,
+        wins: profileResult?.totalWins ? Number(profileResult.totalWins) : 0
+      }
+    }).sort((a, b) => b.xp - a.xp)
+  }, [leaderboard, profiles])
 
   useEffect(() => {
     const fetchWinners = async () => {
@@ -93,13 +106,10 @@ export default function Leaderboard() {
                                     </div>
                                     </td>
                                 </tr>
-                            ) : leaderboard && (leaderboard as any).length > 0 ? (
-                                (leaderboard as any[]).map((address, index) => {
-                                    const profile = profiles?.[index]?.result as any;
-                                    const xp = profile?.totalXP?.toString() || '0';
-
+                            ) : leaderboardWithXP.length > 0 ? (
+                                leaderboardWithXP.map((entry, index) => {
                                     return (
-                                        <tr key={address} className="hover:bg-primary/5 transition-colors group">
+                                        <tr key={entry.address} className="hover:bg-primary/5 transition-colors group">
                                             <td className="px-8 py-5">
                                                 <div className={`
                                                     inline-flex items-center justify-center w-10 h-10 rounded-xl font-black gap-1
@@ -113,14 +123,14 @@ export default function Leaderboard() {
                                             <td className="px-8 py-5 min-w-0">
                                                 <div className="flex flex-col min-w-0">
                                                 <span className="font-mono text-sm group-hover:text-primary transition-colors truncate">
-                                                    {address.slice(0, 4)}...{address.slice(-4)}
+                                                    {entry.address.slice(0, 4)}...{entry.address.slice(-4)}
                                                 </span>
                                                 {index === 0 && <span className="text-[10px] font-bold text-primary uppercase tracking-tighter truncate">Island Sovereign</span>}
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5 text-right">
                                                 <span className="text-xl font-black text-primary">
-                                                    {xp}
+                                                    {entry.xp}
                                                 </span>
                                             </td>
                                         </tr>
