@@ -1,6 +1,7 @@
 'use client'
 
 import { useAccount, useReadContract } from 'wagmi'
+import { sdk } from '@farcaster/miniapp-sdk'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI } from '@/src/constants'
 import { formatEther } from 'viem'
 import Link from 'next/link'
@@ -24,10 +25,29 @@ export default function Profile() {
 
   const copyReferral = () => {
     if (!address) return
-    const url = `${window.location.origin}/api?ref=${address}`
+    const url = `${window.location.origin}/?ref=${address}`
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleShare = async () => {
+    if (!address || !profile) return
+
+    const amount = Number(formatEther((profile as any).totalCELOWon)).toFixed(2)
+    const referralUrl = `${window.location.origin}/?ref=${address}`
+    const text = `I found ${amount} CELO treasure on FindCelo! 🏝️💰 Join me: ${referralUrl} #FindCelo #Celo`
+
+    try {
+      await sdk.actions.composeCast({
+        text,
+        embeds: [referralUrl]
+      })
+    } catch (error) {
+      console.error('Error sharing:', error)
+      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`
+      window.open(warpcastUrl, '_blank')
+    }
   }
 
   if (!isConnected) {
@@ -109,7 +129,7 @@ export default function Profile() {
 
                           <div className="flex bg-background/40 rounded-2xl p-4 items-center border-2 border-border group">
                               <code className="text-[10px] font-mono break-all flex-1 text-muted-foreground">
-                                  {typeof window !== 'undefined' ? `${window.location.origin}/api?ref=${address}` : ''}
+                                  {typeof window !== 'undefined' ? `${window.location.origin}/?ref=${address}` : ''}
                               </code>
                               <button
                                   onClick={copyReferral}
@@ -123,9 +143,18 @@ export default function Profile() {
 
                     <div className="bg-card p-8 rounded-[32px] border-2 border-border text-center">
                         <p className="text-2xl font-black italic tracking-tighter mb-2">💰 Total Treasure</p>
-                        <p className="text-4xl font-black text-primary">
-                           {Number(formatEther((profile as any).totalCELOWon)).toFixed(2)} CELO
-                        </p>
+                        <div className="flex items-center justify-center gap-4">
+                          <p className="text-4xl font-black text-primary">
+                             {Number(formatEther((profile as any).totalCELOWon)).toFixed(2)} CELO
+                          </p>
+                          <button
+                            onClick={handleShare}
+                            className="p-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-xl transition-colors text-xl"
+                            title="Share on Farcaster"
+                          >
+                            📤
+                          </button>
+                        </div>
                     </div>
 
                     {/* Achievements placeholder */}
