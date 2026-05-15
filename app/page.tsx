@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient, useConnect, useWatchContractEvent } from 'wagmi'
-import { parseEther, formatEther, decodeEventLog } from 'viem'
+import { parseEther, formatEther, decodeEventLog, isAddress } from 'viem'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import confetti from 'canvas-confetti'
 import { motion, AnimatePresence, useIsPresent } from 'framer-motion'
 import { sdk } from '@farcaster/miniapp-sdk'
@@ -22,9 +23,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-export default function Home() {
+function HomeContent() {
   const { isConnected, address } = useAccount()
   const { connect, connectors } = useConnect()
+  const searchParams = useSearchParams()
   const [selectedTable, setSelectedTable] = useState('BRONZE')
   const [isMiniPay, setIsMiniPay] = useState(false)
   const [farcasterUser, setFarcasterUser] = useState<Context.UserContext | null>(null)
@@ -51,6 +53,14 @@ export default function Home() {
     const audio = new Audio(sounds[type])
     audio.play().catch(e => console.log('Audio play failed:', e))
   }, [])
+
+  // Capture referral
+  useEffect(() => {
+    const ref = searchParams.get('ref')
+    if (ref && isAddress(ref)) {
+      localStorage.setItem('referral_address', ref)
+    }
+  }, [searchParams])
 
   // Detect MiniPay and Farcaster
   useEffect(() => {
@@ -322,11 +332,13 @@ export default function Home() {
     setShowShareJoin(false)
     setShowShareWin(false)
 
+    const referrer = localStorage.getItem('referral_address') || '0x0000000000000000000000000000000000000000'
+
     writeContract({
       address: CONTRACT_ADDRESS as `0x${string}`,
       abi: FIND_CELO_ABI,
       functionName: 'joinGame',
-      args: [BigInt(land), '0x0000000000000000000000000000000000000000', tableIndex],
+      args: [BigInt(land), referrer as `0x${string}`, tableIndex],
       value: parseEther(tableCost),
     })
   }
@@ -731,5 +743,12 @@ export default function Home() {
         </div>
       </div>
     </main>
+  )
+}
+export default function Home() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </React.Suspense>
   )
 }
