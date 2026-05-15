@@ -35,8 +35,8 @@ export default function Profile() {
     if (!address || !profile) return
 
     const amount = Number(formatEther((profile as any).totalCELOWon)).toFixed(2)
-    const referralUrl = `${window.location.origin}/?ref=${address}`
-    const text = `I found ${amount} CELO treasure on FindCelo! 🏝️💰 Join me: ${referralUrl} #FindCelo #Celo`
+    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`
+    const text = `I have collected ${amount} CELO in total on FindCelo! 🏝️💰 Join the treasure hunt: ${referralUrl} #FindCelo #Celo`
 
     try {
       await sdk.actions.composeCast({
@@ -149,10 +149,9 @@ export default function Profile() {
                           </p>
                           <button
                             onClick={handleShare}
-                            className="p-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-xl transition-colors text-xl"
-                            title="Share on Farcaster"
+                            className="px-4 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-xl transition-colors text-xs font-black uppercase tracking-widest text-primary"
                           >
-                            📤
+                            Share on Farcaster
                           </button>
                         </div>
                     </div>
