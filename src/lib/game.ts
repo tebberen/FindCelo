@@ -28,6 +28,39 @@ export async function getTableData(tableIndex: number) {
     }
 }
 
+export async function getAllTablesStatus() {
+    const bronze = await getTableData(0);
+    const silver = await getTableData(1);
+    const gold = await getTableData(2);
+
+    return {
+        bronze: bronze.seatsFilled,
+        silver: silver.seatsFilled,
+        gold: gold.seatsFilled,
+    };
+}
+
+export async function getTotalDistributed() {
+    try {
+        const logs = await publicClient.getLogs({
+            address: CONTRACT_ADDRESS as `0x${string}`,
+            event: FIND_CELO_ABI.find((x: any) => x.name === 'TableFilled') as any,
+            fromBlock: 0n, // Start from beginning to get lifetime stats
+            toBlock: 'latest',
+            strict: true,
+        });
+
+        let total = 0n;
+        for (const log of logs) {
+            total += (log as any).args.prize;
+        }
+        return formatEther(total);
+    } catch (e) {
+        console.error('Error fetching lifetime distributed logs:', e);
+        return '0';
+    }
+}
+
 export async function getLatestWinner() {
     try {
         const logs = await publicClient.getLogs({
