@@ -29,8 +29,8 @@ registerSnapHandler(app, async (ctx) => {
     : 'No winners yet';
 
   return {
-    version: "2.0",
-    theme: { accent: "teal" },
+    version: "2.0" as const,
+    theme: { accent: "teal" as const },
     ui: {
       root: "main",
       elements: {
@@ -123,8 +123,8 @@ async function renderTierView(tier: number, baseUrl: string) {
     }
 
     return {
-        version: "2.0",
-        theme: { accent: "teal" },
+        version: "2.0" as const,
+        theme: { accent: "teal" as const },
         ui: {
             root: "tier_page",
             elements: {
