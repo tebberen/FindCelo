@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient, useConnect, useWatchContractEvent } from 'wagmi'
-import { parseEther, formatEther, decodeEventLog } from 'viem'
+import { parseEther, formatEther, decodeEventLog, isAddress } from 'viem'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import confetti from 'canvas-confetti'
-import { motion, AnimatePresence, useIsPresent } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { sdk } from '@farcaster/miniapp-sdk'
 import type { Context } from '@farcaster/miniapp-core'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI, TABLE_TYPES, TABLE_COSTS } from '@/src/constants'
@@ -21,10 +22,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { NeynarAuthButton } from '@/components/auth/NeynarAuthButton'
 
-export default function Home() {
+export default function HomeContent() {
   const { isConnected, address } = useAccount()
   const { connect, connectors } = useConnect()
+  const searchParams = useSearchParams()
   const [selectedTable, setSelectedTable] = useState('BRONZE')
   const [isMiniPay, setIsMiniPay] = useState(false)
   const [farcasterUser, setFarcasterUser] = useState<Context.UserContext | null>(null)
@@ -57,6 +60,14 @@ export default function Home() {
     audio.play().catch(e => console.log('Audio play failed:', e))
   }, [])
 
+  // Capture referral
+  useEffect(() => {
+    const ref = searchParams.get('ref')
+    if (ref && isAddress(ref)) {
+      localStorage.setItem('referral_address', ref)
+    }
+  }, [searchParams])
+
   // Detect MiniPay and Farcaster
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).ethereum?.isMiniPay) {
@@ -67,10 +78,25 @@ export default function Home() {
       const context = await sdk.context
       if (context?.user) {
         setFarcasterUser(context.user)
+      } else if (address) {
+        try {
+          const res = await fetch(`/api/neynar?action=fetch-user-by-address&address=${address}`)
+          const data = await res.json()
+          if (data && data.fid) {
+            setFarcasterUser({
+              fid: data.fid,
+              username: data.username,
+              displayName: data.display_name,
+              pfpUrl: data.pfp_url
+            } as any)
+          }
+        } catch (err) {
+          console.error('Failed to fetch user from Neynar:', err)
+        }
       }
     }
     loadFarcaster()
-  }, [])
+  }, [address])
 
   // Onboarding check
   useEffect(() => {
@@ -84,6 +110,38 @@ export default function Home() {
       setShowHowToPlayModal(true)
     }
   }, [])
+
+  // Register user FID mapping
+  useEffect(() => {
+    if (isConnected && address && farcasterUser?.fid) {
+      fetch('/api/user/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, fid: farcasterUser.fid })
+      }).catch(err => console.error('Failed to register user:', err))
+    }
+  }, [isConnected, address, farcasterUser])
+
+  useEffect(() => {
+    window.onNeynarAuthSuccess = (data: any) => {
+      if (data.user) {
+        setFarcasterUser({
+          fid: data.user.fid,
+          username: data.user.username,
+          displayName: data.user.display_name,
+          pfpUrl: data.user.pfp_url
+        } as any);
+
+        if (isConnected && address) {
+          fetch('/api/user/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ address, fid: data.user.fid })
+          }).catch(err => console.error('Failed to register user from Neynar SIWN:', err))
+        }
+      }
+    };
+  }, [isConnected, address]);
 
   // Auto-connect
   useEffect(() => {
@@ -101,7 +159,25 @@ export default function Home() {
       }
     }
   }, [isMiniPay, isConnected, connect, connectors])
+
   const [recentWinners, setRecentWinners] = useState<any[]>([])
+  const [winnerProfiles, setWinnerProfiles] = useState<Record<string, any>>({})
+
+  useEffect(() => {
+    const fetchWinnerProfiles = async () => {
+      const addresses = Array.from(new Set(recentWinners.map(w => w.address))).filter(Boolean);
+      if (addresses.length > 0) {
+        try {
+          const res = await fetch(`/api/neynar?action=fetch-bulk-users&addresses=${addresses.join(',')}`)
+          const data = await res.json()
+          setWinnerProfiles(prev => ({ ...prev, ...data }))
+        } catch (err) {
+          console.error('Failed to fetch winner profiles:', err)
+        }
+      }
+    }
+    fetchWinnerProfiles()
+  }, [recentWinners])
 
   // Load winners from localStorage on mount
   useEffect(() => {
@@ -155,7 +231,6 @@ export default function Home() {
 
       const triggerAutoCast = async () => {
         try {
-          // Need latest table state for accurate seatsFilled
           const { data: latestTableInfo } = await refetchTableInfo()
           refetchPlayers()
 
@@ -168,7 +243,6 @@ export default function Home() {
              }
           }
 
-          // Check for TableFilled event
           const tableFilledLog = receipt.logs.find(log => {
             try {
               const decoded = decodeEventLog({
@@ -184,6 +258,7 @@ export default function Home() {
 
           let text = ''
           const username = farcasterUser?.username ? `@${farcasterUser.username}` : (address?.slice(0, 4) + '...' + address?.slice(-4))
+          const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`
 
           if (tableFilledLog) {
             const decoded = decodeEventLog({
@@ -195,6 +270,13 @@ export default function Home() {
             const winner = decoded.args.winner
             const prize = formatEther(decoded.args.prize)
             const winnerLand = Number(decoded.args.winningLand)
+
+            fetch('/api/notify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ txHash: receipt.transactionHash })
+            }).catch(err => console.error('Failed to trigger notifications:', err))
+
             const winnerUsername = winner.toLowerCase() === address?.toLowerCase()
               ? (farcasterUser?.username ? `@${farcasterUser.username}` : winner.slice(0, 4) + '...' + winner.slice(-4))
               : winner.slice(0, 4) + '...' + winner.slice(-4)
@@ -212,18 +294,26 @@ export default function Home() {
               colors: ['#FFD700', '#FFA500', '#FFFFFF']
             })
 
-            text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${prize} CELO! 🤑\nThe treasure was hidden in Land ${winnerLand}.\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 https://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+            text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${prize} CELO! 🤑\nThe treasure was hidden in Land ${winnerLand}.\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 ${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`
           } else {
             const filledCount = currentFilled
             const emptyCount = 6 - filledCount
 
-            text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\nhttps://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+            text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\n${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`
           }
 
-          await sdk.actions.composeCast({
-            text,
-            embeds: ['https://find-celo.vercel.app']
-          })
+          try {
+            await fetch('/api/neynar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
+            })
+          } catch (e) {
+            await sdk.actions.composeCast({
+              text,
+              embeds: [referralUrl]
+            })
+          }
         } catch (error) {
           console.error('Error triggering auto-cast:', error)
           setShowShareJoin(true)
@@ -244,7 +334,7 @@ export default function Home() {
       ) {
         setLastWinAmount(latestWinner.amount)
         setShowShareWin(true)
-        setShowShareJoin(false) // Win takes precedence
+        setShowShareJoin(false)
         setLastProcessedWinnerRound(latestWinner.roundId)
 
         playSound('win')
@@ -284,7 +374,6 @@ export default function Home() {
         }))
 
         setRecentWinners(prev => {
-            // Merge with existing and remove duplicates based on hash
             const combined = [...formattedWinners, ...prev]
             const unique = combined.filter((v, i, a) => a.findIndex(t => t.hash === v.hash) === i)
             return unique.slice(0, 10)
@@ -341,11 +430,13 @@ export default function Home() {
     setShowShareJoin(false)
     setShowShareWin(false)
 
+    const referrer = localStorage.getItem('referral_address') || '0x0000000000000000000000000000000000000000'
+
     writeContract({
       address: CONTRACT_ADDRESS as `0x${string}`,
       abi: FIND_CELO_ABI,
       functionName: 'joinGame',
-      args: [BigInt(land), '0x0000000000000000000000000000000000000000', tableIndex],
+      args: [BigInt(land), referrer as `0x${string}`, tableIndex],
       value: parseEther(tableCost),
     })
   }
@@ -354,31 +445,55 @@ export default function Home() {
     const username = farcasterUser?.username ? `@${farcasterUser.username}` : (address?.slice(0, 4) + '...' + address?.slice(-4))
     const filledCount = seatsFilled
     const emptyCount = 6 - filledCount
-    const text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\nhttps://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`
+    const text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\n${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`
 
     try {
-      await sdk.actions.composeCast({
-        text,
-        embeds: ['https://find-celo.vercel.app']
+      const res = await fetch('/api/neynar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
       })
-      setShowShareJoin(false)
+      if (res.ok) {
+        setShowShareJoin(false)
+      } else {
+        throw new Error('Neynar post failed')
+      }
     } catch (error) {
-      console.error('Error sharing join:', error)
+      console.error('Error sharing join via Neynar:', error)
+      try {
+        await sdk.actions.composeCast({ text, embeds: [referralUrl] })
+        setShowShareJoin(false)
+      } catch (e) {
+        console.error('Fallback sharing failed:', e)
+      }
     }
   }
 
   const handleShareWin = async () => {
     const winnerUsername = farcasterUser?.username ? `@${farcasterUser.username}` : address?.slice(0, 4) + '...' + address?.slice(-4)
-    const text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${lastWinAmount} CELO! 🤑\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 https://find-celo.vercel.app\n\n#FindCelo #Celo #TreasureIsland`
+    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`
+    const text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${lastWinAmount} CELO! 🤑\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 ${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`
 
     try {
-      await sdk.actions.composeCast({
-        text,
-        embeds: ['https://find-celo.vercel.app']
+      const res = await fetch('/api/neynar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
       })
-      setShowShareWin(false)
+      if (res.ok) {
+        setShowShareWin(false)
+      } else {
+        throw new Error('Neynar post failed')
+      }
     } catch (error) {
-      console.error('Error sharing win:', error)
+      console.error('Error sharing win via Neynar:', error)
+      try {
+        await sdk.actions.composeCast({ text, embeds: [referralUrl] })
+        setShowShareWin(false)
+      } catch (e) {
+        console.error('Fallback sharing failed:', e)
+      }
     }
   }
 
@@ -477,7 +592,6 @@ export default function Home() {
                 const newMuted = !isMuted
                 setIsMuted(newMuted)
                 if (isMuted) {
-                   // This is a hack to enable audio on user gesture if needed
                    const a = new Audio()
                    a.play().catch(() => {})
                 }
@@ -514,19 +628,22 @@ export default function Home() {
               </div>
             )}
             {!isConnected && (
-              <Button
-                onClick={() => {
-                  const connector = isMiniPay
-                    ? connectors.find(c => c.id === 'injected')
-                    : connectors.find(c => c.id === 'farcasterMiniApp');
-                  if (connector) connect({ connector });
-                }}
-                variant="default"
-                size="sm"
-                className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider shrink-0"
-              >
-                Connect
-              </Button>
+              <div className="flex items-center gap-2">
+                <NeynarAuthButton />
+                <Button
+                  onClick={() => {
+                    const connector = isMiniPay
+                      ? connectors.find(c => c.id === 'injected')
+                      : connectors.find(c => c.id === 'farcasterMiniApp');
+                    if (connector) connect({ connector });
+                  }}
+                  variant="default"
+                  size="sm"
+                  className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider shrink-0"
+                >
+                  Connect
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -630,11 +747,11 @@ export default function Home() {
               >
                 {showShareWin ? (
                   <span className="flex items-center gap-2">
-                    🎉 Share Win to Farcaster
+                    🎉 Share Win on Farcaster
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
-                    📢 Invite Friends
+                    📢 Share on Farcaster
                   </span>
                 )}
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
@@ -673,31 +790,33 @@ export default function Home() {
               >
                 <Card
                   className={`
-                    relative aspect-[4/5] flex flex-col items-center justify-center p-4
+                    relative flex flex-col items-center justify-start overflow-hidden
                     transition-all duration-200 cursor-pointer group border-2 h-full
                     ${isWinner
                       ? 'border-yellow-400 bg-yellow-400/20 shadow-[0_0_15px_rgba(255,215,0,0.4)] z-10'
                       : !isOccupied
-                        ? 'hover:border-primary/50 bg-black/50 backdrop-blur-sm border-amber-500/30'
+                        ? 'hover:border-primary/50 bg-black/30 backdrop-blur-sm border-amber-500/30'
                         : isUser
                           ? 'border-primary ring-1 ring-primary/20 bg-black/60 backdrop-blur-sm'
                           : 'opacity-60 bg-black/40 backdrop-blur-sm border-white/10'}
                   `}
                   onClick={() => !isOccupied && handleJoinGame(land)}
                 >
-                <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center text-xl transition-transform group-hover:scale-110 ${
-                    isOccupied
-                        ? (isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')
-                        : 'bg-secondary/50'
-                }`}>
-                   <img src="/images/treasure-chest.png" alt="Land" className="w-12 h-12" />
-                </div>
-                <span className="text-[14px] font-bold uppercase text-yellow-200 block w-full truncate text-center">
-                   {land}
-                </span>
-                <span className="text-[11px] font-bold uppercase text-yellow-200/80 block w-full truncate text-center">
-                   {isOccupied ? (isUser ? (farcasterUser ? `@${farcasterUser.username}` : 'YOU') : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
-                </span>
+                  <div className="w-full aspect-square relative overflow-hidden bg-black/20">
+                    <img
+                      src="/images/treasure-chest.png"
+                      alt="Land"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-2 w-full flex flex-col items-center">
+                    <span className="text-[14px] font-bold uppercase text-yellow-200 block w-full truncate text-center">
+                       {land}
+                    </span>
+                    <span className="text-[11px] font-bold uppercase text-yellow-200/80 block w-full truncate text-center">
+                       {isOccupied ? (isUser ? (farcasterUser ? `@${farcasterUser.username}` : 'YOU') : `${playerAddress.slice(0, 4)}...${playerAddress.slice(-4)}`) : 'EMPTY'}
+                    </span>
+                  </div>
 
                 {isConfirming && !isOccupied && (
                    <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] rounded-lg flex items-center justify-center">
@@ -725,10 +844,15 @@ export default function Home() {
                     recentWinners.map((winner, i) => (
                         <div key={winner.hash || i} className="px-3 py-2 flex items-center justify-between hover:bg-white/5 transition-colors group">
                             <div className="flex items-center gap-2 min-w-0">
+                                {winnerProfiles[winner.address.toLowerCase()]?.pfp_url ? (
+                                  <img src={winnerProfiles[winner.address.toLowerCase()].pfp_url} alt="" className="w-5 h-5 rounded-full border border-primary/30 shrink-0" />
+                                ) : (
+                                  <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[8px] shrink-0">👤</div>
+                                )}
                                 <div className="min-w-0">
                                     <div className="flex items-center gap-1.5 flex-nowrap">
-                                        <span className="text-[10px] font-mono font-bold text-white truncate">
-                                            {winner.address.slice(0, 4)}...{winner.address.slice(-4)}
+                                        <span className="text-[10px] font-bold text-white truncate">
+                                            {winnerProfiles[winner.address.toLowerCase()]?.username ? `@${winnerProfiles[winner.address.toLowerCase()].username}` : `${winner.address.slice(0, 4)}...${winner.address.slice(-4)}`}
                                         </span>
                                         {winner.timestamp && (
                                           <span className="text-[9px] text-white/40 font-bold uppercase whitespace-nowrap">
@@ -741,11 +865,14 @@ export default function Home() {
                                             })()}
                                           </span>
                                         )}
+                                        <Badge variant="outline" className="text-[8px] px-1 py-0 border-primary/20 text-primary shrink-0 h-3.5 uppercase font-black">
+                                            {winner.tableType}
+                                        </Badge>
                                     </div>
                                 </div>
                             </div>
                             <div className="text-right shrink-0">
-                                <span className="text-xs font-black text-[#FFD700]">{winner.amount} CELO</span>
+                                <span className="text-xs font-black text-[#FFD700]">+{winner.amount} CELO</span>
                             </div>
                         </div>
                     ))
@@ -906,7 +1033,6 @@ export default function Home() {
                 onClick={() => {
                   setIsWinnerModalOpen(false)
                   setWinningLand(null)
-                  // Refetch state for new game
                   refetchPlayers()
                   refetchTableInfo()
                 }}

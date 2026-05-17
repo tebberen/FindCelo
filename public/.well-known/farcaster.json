@@ -12,7 +12,7 @@
     "imageUrl": "https://find-celo.vercel.app/images/logo.png",
     "buttonTitle": "Play FindCelo",
     "splashImageUrl": "https://find-celo.vercel.app/images/logo.png",
-    "splashBackgroundColor": "#F9C500",
+    "splashBackgroundColor": "#3e2722",
     "webhookUrl": "https://find-celo.vercel.app/api/webhook"
   }
 }

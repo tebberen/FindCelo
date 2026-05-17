@@ -39,14 +39,24 @@ export default function Profile() {
     const text = `I have collected ${amount} CELO in total on FindCelo! 🏝️💰 Join the treasure hunt: ${referralUrl} #FindCelo #Celo`
 
     try {
-      await sdk.actions.composeCast({
-        text,
-        embeds: [referralUrl]
+      const res = await fetch('/api/neynar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
       })
+      if (!res.ok) throw new Error('Neynar post failed')
     } catch (error) {
-      console.error('Error sharing:', error)
-      const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`
-      window.open(warpcastUrl, '_blank')
+      console.error('Error sharing via Neynar:', error)
+      try {
+        await sdk.actions.composeCast({
+          text,
+          embeds: [referralUrl]
+        })
+      } catch (e) {
+        console.error('Fallback sharing failed:', e)
+        const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`
+        window.open(warpcastUrl, '_blank')
+      }
     }
   }
 

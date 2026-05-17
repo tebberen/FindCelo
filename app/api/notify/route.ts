@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFidByAddress, getTokenByFid, isTxProcessed, markTxProcessed } from '@/src/lib/storage';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { createPublicClient, http, decodeEventLog, formatEther } from 'viem';
 import { celo } from 'viem/chains';
 import { CONTRACT_ADDRESS, FIND_CELO_ABI } from '@/src/constants';
@@ -58,6 +59,32 @@ export async function POST(req: NextRequest) {
     const prize = formatEther(decoded.args.prize);
     const winningLand = Number(decoded.args.winningLand);
     const tableType = decoded.args.tableType;
+
+    // Autonomous Agent: Post Winner Announcement Cast
+    try {
+      const neynarApiKey = process.env.NEYNAR_API_KEY || '';
+      const signerUuid = process.env.NEYNAR_SIGNER_UUID || '';
+
+      if (neynarApiKey && signerUuid) {
+        const client = new NeynarAPIClient({ apiKey: neynarApiKey });
+
+        // Fetch winner username for better cast text
+        const response: any = await client.fetchBulkUsersByEthOrSolAddress({ addresses: [winner] });
+        const userData = response[winner.toLowerCase()]?.[0];
+        const winnerDisplay = userData?.username ? `@${userData.username}` : `${winner.slice(0, 6)}...${winner.slice(-4)}`;
+
+        const castText = `🏆 Congratulations ${winnerDisplay}! Won ${prize} CELO on FindCelo! 🏝️💰\n\nThe treasure was hidden in Land #${winningLand}.\n\nPlay now: 👇\nhttps://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo #FindCelo #Celo`;
+
+        await client.publishCast({
+          signerUuid,
+          text: castText,
+          embeds: [{ url: 'https://find-celo.vercel.app' }] as any
+        });
+        console.log('Autonomous winner announcement posted');
+      }
+    } catch (err) {
+      console.error('Failed to post autonomous winner announcement:', err);
+    }
 
     // Fetch the 6 players of this game from on-chain logs for maximum security and reliability
     const fromBlock = receipt.blockNumber > 500n ? receipt.blockNumber - 500n : 0n;
