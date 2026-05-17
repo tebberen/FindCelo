@@ -295,24 +295,35 @@ export default function HomeContent() {
             })
 
             text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${prize} CELO! 🤑\nThe treasure was hidden in Land ${winnerLand}.\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 ${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`
+
+            try {
+              await fetch('/api/neynar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
+              })
+            } catch (e) {
+              await sdk.actions.composeCast({
+                text,
+                embeds: [referralUrl]
+              })
+            }
           } else {
-            const filledCount = currentFilled
-            const emptyCount = 6 - filledCount
-
-            text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\n${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`
-          }
-
-          try {
-            await fetch('/api/neynar', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
-            })
-          } catch (e) {
-            await sdk.actions.composeCast({
-              text,
-              embeds: [referralUrl]
-            })
+            try {
+              await fetch('/api/post-join-cast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  landIndex: lastJoinedLand,
+                  seatsFilled: currentFilled,
+                  userAddress: address,
+                  username: farcasterUser?.username
+                })
+              })
+            } catch (error) {
+              console.error('Error calling post-join-cast API:', error)
+              setShowShareJoin(true)
+            }
           }
         } catch (error) {
           console.error('Error triggering auto-cast:', error)
