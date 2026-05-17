@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useReadContract, useReadContracts, usePublicClient } from 'wagmi'
+import { NeynarAPIClient } from '@neynar/nodejs-sdk'
 import { CONTRACT_ADDRESS, FIND_CELO_ABI } from '@/src/constants'
 import { formatEther } from 'viem'
 import Link from 'next/link'
@@ -30,18 +31,38 @@ export default function Leaderboard() {
     }
   })
 
+  const [farcasterProfiles, setFarcasterProfiles] = useState<Record<string, any>>({})
+
   const leaderboardWithXP = useMemo(() => {
     if (!leaderboard || !profiles) return []
 
     return (leaderboard as `0x${string}`[]).map((address, index) => {
       const profileResult = profiles[index]?.result as any
+      const fcProfile = farcasterProfiles[address.toLowerCase()]
       return {
         address,
         xp: profileResult?.totalXP ? Number(profileResult.totalXP) : 0,
-        wins: profileResult?.totalWins ? Number(profileResult.totalWins) : 0
+        wins: profileResult?.totalWins ? Number(profileResult.totalWins) : 0,
+        username: fcProfile?.username,
+        pfp: fcProfile?.pfp_url
       }
     }).sort((a, b) => b.xp - a.xp)
-  }, [leaderboard, profiles])
+  }, [leaderboard, profiles, farcasterProfiles])
+
+  useEffect(() => {
+    const fetchFCProfiles = async () => {
+      if (leaderboard && (leaderboard as any[]).length > 0) {
+        try {
+          const res = await fetch(`/api/neynar?action=fetch-bulk-users&addresses=${(leaderboard as string[]).join(',')}`)
+          const data = await res.json()
+          setFarcasterProfiles(data)
+        } catch (err) {
+          console.error('Failed to fetch FC profiles:', err)
+        }
+      }
+    }
+    fetchFCProfiles()
+  }, [leaderboard])
 
   useEffect(() => {
     const fetchWinners = async () => {
@@ -121,11 +142,18 @@ export default function Leaderboard() {
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5 min-w-0">
-                                                <div className="flex flex-col min-w-0">
-                                                <span className="font-mono text-sm group-hover:text-primary transition-colors truncate">
-                                                    {entry.address.slice(0, 4)}...{entry.address.slice(-4)}
-                                                </span>
-                                                {index === 0 && <span className="text-[10px] font-bold text-primary uppercase tracking-tighter truncate">Island Sovereign</span>}
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                  {entry.pfp ? (
+                                                    <img src={entry.pfp} alt={entry.username} className="w-8 h-8 rounded-full border border-primary/50 shrink-0" />
+                                                  ) : (
+                                                    <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-xs shrink-0">👤</div>
+                                                  )}
+                                                  <div className="flex flex-col min-w-0">
+                                                    <span className="font-bold text-sm group-hover:text-primary transition-colors truncate">
+                                                        {entry.username ? `@${entry.username}` : `${entry.address.slice(0, 4)}...${entry.address.slice(-4)}`}
+                                                    </span>
+                                                    {index === 0 && <span className="text-[10px] font-bold text-primary uppercase tracking-tighter truncate">Island Sovereign</span>}
+                                                  </div>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5 text-right">

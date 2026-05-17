@@ -29,6 +29,8 @@ export const metadata: Metadata = {
       version: '1',
       imageUrl: 'https://find-celo.vercel.app/images/logo.png',
       iconUrl: 'https://find-celo.vercel.app/images/logo.png',
+      splashImageUrl: 'https://find-celo.vercel.app/images/logo.png',
+      splashBackgroundColor: '#3e2722',
       button: {
         title: '🏝️ Play FindCelo',
         action: {
