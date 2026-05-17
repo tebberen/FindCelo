@@ -317,6 +317,7 @@ export default function HomeContent() {
                   landIndex: lastJoinedLand,
                   userAddress: address,
                   seatsFilled: currentFilled,
+                  playerUsername: farcasterUser?.username,
                   txHash: receipt.transactionHash
                 })
               })

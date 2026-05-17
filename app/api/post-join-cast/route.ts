@@ -18,7 +18,7 @@ const publicClient = createPublicClient({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { landIndex, userAddress, seatsFilled, txHash } = body;
+    const { landIndex, userAddress, seatsFilled, playerUsername, txHash } = body;
 
     if (landIndex === undefined || userAddress === undefined || seatsFilled === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -41,28 +41,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const totalPlayers = 6;
-    const remainingPlayers = totalPlayers - seatsFilled;
-    const moreAdventurersText = remainingPlayers === 1 ? 'adventurer' : 'adventurers';
+    const remaining = 6 - seatsFilled;
 
     // Get username from Neynar if possible, or use address
-    let playerDisplay = userAddress.slice(0, 4) + '...' + userAddress.slice(-4);
-    try {
-        const users = await client.fetchBulkUsersByEthOrSolAddress({ addresses: [userAddress] }) as any;
-        if (users[userAddress.toLowerCase()]) {
-            playerDisplay = `@${users[userAddress.toLowerCase()].username}`;
+    let playerDisplay = playerUsername;
+    if (!playerDisplay) {
+        playerDisplay = userAddress.slice(0, 4) + '...' + userAddress.slice(-4);
+        try {
+            const users = (await client.fetchBulkUsersByEthOrSolAddress({ addresses: [userAddress] })) as any;
+            if (users[userAddress.toLowerCase()]) {
+                playerDisplay = `@${users[userAddress.toLowerCase()].username}`;
+            }
+        } catch (e) {
+            console.error('Error fetching username from Neynar:', e);
         }
-    } catch (e) {
-        console.error('Error fetching username from Neynar:', e);
     }
 
-    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${userAddress}`;
-    const castText = `⚔️ Adventurer ${playerDisplay} has set foot on Treasure Island! ⚔️\n🏝️ They claimed Land ${landIndex}.\nNow ${seatsFilled}/${totalPlayers} players are on the island. ${remainingPlayers} more ${moreAdventurersText} needed to find the treasure!\nJoin the hunt: 👇\n${referralUrl}\n#FindCelo #Celo #TreasureIsland`;
+    if (playerDisplay && !playerDisplay.startsWith('@') && !playerDisplay.startsWith('0x')) {
+        playerDisplay = `@${playerDisplay}`;
+    }
+
+    const referralUrl = `https://find-celo.vercel.app/?ref=${userAddress}`;
+    const castText = `⚔️ Adventurer ${playerDisplay} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${landIndex}.\n\nNow ${seatsFilled}/6 players are on the island. ${remaining} more adventurer(s) needed to find the treasure!\n\nJoin the hunt: 👇\n${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`;
 
     const response = await client.publishCast({
       signerUuid,
       text: castText,
-      embeds: [referralUrl] as any // Use array of strings as per user instruction
+      embeds: [referralUrl] as any
     });
 
     return NextResponse.json(response);
