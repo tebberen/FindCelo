@@ -310,19 +310,18 @@ export default function HomeContent() {
             }
           } else {
             try {
-              await fetch('/api/cast/player-joined', {
+              await fetch('/api/post-join-cast', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  playerUsername: farcasterUser?.username || (address?.slice(0, 4) + '...' + address?.slice(-4)),
-                  landNumber: lastJoinedLand,
-                  currentPlayers: currentFilled,
-                  totalPlayers: 6,
+                  landIndex: lastJoinedLand,
+                  userAddress: address,
+                  seatsFilled: currentFilled,
                   txHash: receipt.transactionHash
                 })
               })
             } catch (error) {
-              console.error('Error calling player-joined cast API:', error)
+              console.error('Error calling post-join-cast API:', error)
               setShowShareJoin(true)
             }
           }
