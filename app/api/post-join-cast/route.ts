@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const response = await client.publishCast({
       signerUuid,
       text,
-      embeds: [{ url: referralUrl }]
+      embeds: [{ url: referralUrl }] as any
     });
 
     return NextResponse.json(response);
