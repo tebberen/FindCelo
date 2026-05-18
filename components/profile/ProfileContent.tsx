@@ -99,6 +99,23 @@ export default function Profile() {
                         </div>
                     </div>
 
+                    <Link href="/recent-games" className="block">
+                      <div className="bg-primary/10 border-2 border-primary/30 rounded-[24px] p-6 hover:bg-primary/20 transition-all group">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <span className="text-3xl">📜</span>
+                            <div>
+                              <p className="text-xl font-black italic tracking-tighter text-primary">Recent Voyages</p>
+                              <p className="text-xs font-bold text-primary/60 uppercase tracking-widest">View your complete game history</p>
+                            </div>
+                          </div>
+                          <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                            →
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+
                     <div className="bg-card/80 rounded-[32px] p-8 border-2 border-border backdrop-blur-xl relative overflow-hidden">
                         <h3 className="text-xl font-black italic tracking-tighter mb-6 flex items-center gap-3">
                             RECRUIT NEW VOYAGERS
