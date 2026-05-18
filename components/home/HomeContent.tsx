@@ -34,6 +34,12 @@ export default function HomeContent() {
   const [showShareJoin, setShowShareJoin] = useState(false)
   const [showShareWin, setShowShareWin] = useState(false)
   const [lastJoinedLand, setLastJoinedLand] = useState<number | null>(null)
+
+  // Load lastJoinedLand from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('last_joined_land')
+    if (saved) setLastJoinedLand(parseInt(saved))
+  }, [])
   const [lastWinAmount, setLastWinAmount] = useState<string | null>(null)
   const [lastProcessedWinnerRound, setLastProcessedWinnerRound] = useState<string | null>(null)
   const [lastCastedHash, setLastCastedHash] = useState<string | null>(null)
@@ -325,7 +331,9 @@ export default function HomeContent() {
               });
               const data = await response.json();
               console.log('post-join-cast response:', data);
-              if (!response.ok) {
+              if (response.ok) {
+                localStorage.removeItem('last_joined_land');
+              } else {
                 console.error('post-join-cast failed:', data.error);
                 setShowShareJoin(true);
               }
@@ -447,6 +455,7 @@ export default function HomeContent() {
     if (!isConnected) return
     setWinningLand(null)
     setLastJoinedLand(land)
+    localStorage.setItem('last_joined_land', land.toString())
     setShowShareJoin(false)
     setShowShareWin(false)
 

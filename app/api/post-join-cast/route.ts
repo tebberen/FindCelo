@@ -18,6 +18,7 @@ const publicClient = createPublicClient({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    console.log('Post-join-cast request body:', body);
     const { landIndex, userAddress, seatsFilled, playerUsername, txHash } = body;
 
     if (landIndex === undefined || userAddress === undefined || seatsFilled === undefined) {
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
     const response = await client.publishCast({
       signerUuid,
       text: castText,
-      embeds: [referralUrl] as any
+      embeds: [{ url: referralUrl }]
     });
 
     return NextResponse.json(response);
