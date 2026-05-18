@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       signerUuid,
       text: castText,
       embeds: [{ url: referralUrl }]
-    });
+    } as any);
 
     return NextResponse.json(response);
   } catch (error: any) {
