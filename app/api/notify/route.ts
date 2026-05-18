@@ -140,6 +140,21 @@ export async function POST(req: NextRequest) {
           }),
         }).then(res => res.json().catch(() => ({})))
       );
+
+      // Feature 2: Send Snap DM
+      notifications.push(
+        fetch(`${process.env.NEXT_PUBLIC_URL || 'https://find-celo.vercel.app'}/api/send-result-snap`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            winnerAddress: winner,
+            prize,
+            winningLand,
+            didWin: isWinner,
+            userFid: fid
+          }),
+        }).then(res => res.json().catch(() => ({})))
+      );
     }
 
     if (notifications.length > 0) {

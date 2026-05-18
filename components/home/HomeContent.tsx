@@ -48,6 +48,14 @@ export default function HomeContent() {
   const [modalData, setModalData] = useState<{winner: string, land: number, prize: string} | null>(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showHowToPlayModal, setShowHowToPlayModal] = useState(false)
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false)
+  const [localResult, setLocalResult] = useState<{
+    didWin: boolean;
+    prizeWon: string;
+    winningLand: number;
+    gameId: string;
+    tableIndex: number;
+  } | null>(null)
 
   const isMutedRef = React.useRef(isMuted)
   useEffect(() => {
@@ -205,6 +213,96 @@ export default function HomeContent() {
   const publicClient = usePublicClient()
 
   const tableIndex = (TABLE_TYPES as any)[selectedTable]
+
+  // Feature 1: Check for pending game result on load
+  useEffect(() => {
+    const checkPendingGame = async () => {
+      if (!address || !publicClient) return;
+      const pendingRaw = localStorage.getItem('pending_game');
+      if (!pendingRaw) return;
+
+      try {
+        const pending = JSON.parse(pendingRaw);
+        if (pending.address.toLowerCase() !== address.toLowerCase()) return;
+
+        // Fetch TableFilled events for this table since the user joined
+        // Using a block number from when the contract was roughly deployed to avoid scanning from 0
+        const logs = await publicClient.getLogs({
+          address: CONTRACT_ADDRESS as `0x${string}`,
+          event: FIND_CELO_ABI.find((x: any) => x.name === 'TableFilled') as any,
+          fromBlock: 26000000n,
+          toBlock: 'latest',
+        });
+
+        // Find if any TableFilled event happened after joining that matches the user's participation
+        // For simplicity, we check the last 20 events
+        const tableFilledLogs = logs.reverse().slice(0, 20);
+
+        for (const log of tableFilledLogs) {
+          const txHash = log.transactionHash;
+          const gameResults = JSON.parse(localStorage.getItem('gameResults') || '{}');
+
+          // If we already have this result saved for this address, skip
+          if (gameResults[address.toLowerCase()]?.gameId === txHash) continue;
+
+          // We need to know who the 6 players were. We check GameJoined events in that transaction block or before
+          const joinLogs = await publicClient.getLogs({
+            address: CONTRACT_ADDRESS as `0x${string}`,
+            event: FIND_CELO_ABI.find((x: any) => x.name === 'GameJoined') as any,
+            fromBlock: log.blockNumber && log.blockNumber > 500n ? log.blockNumber - 500n : 0n,
+            toBlock: log.blockNumber,
+          });
+
+          const tableType = (log as any).args.tableType;
+          const players = joinLogs
+            .filter((j: any) => j.args.tableType === tableType)
+            .slice(-6)
+            .map((j: any) => j.args.player.toLowerCase());
+
+          if (players.includes(address.toLowerCase())) {
+            // This is a result for a game the user was in!
+            const winner = (log as any).args.winner.toLowerCase();
+            const winningLand = Number((log as any).args.winningLand);
+            const prize = formatEther((log as any).args.prize);
+            const didWin = winner === address.toLowerCase();
+
+            const result = {
+              gameId: txHash,
+              didWin,
+              prizeWon: prize,
+              winningLand,
+              tableIndex: tableType,
+              seen: false,
+              timestamp: Date.now()
+            };
+
+            // Save to gameResults
+            gameResults[address.toLowerCase()] = result;
+            localStorage.setItem('gameResults', JSON.stringify(gameResults));
+
+            // Save to history (Feature 3)
+            const historyKey = `gameHistory_${address.toLowerCase()}`;
+            const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+            if (!history.find((h: any) => h.gameId === txHash)) {
+              history.unshift(result);
+              localStorage.setItem(historyKey, JSON.stringify(history));
+            }
+
+            setLocalResult(result);
+            setIsResultModalOpen(true);
+            localStorage.removeItem('pending_game');
+            break;
+          }
+        }
+      } catch (e) {
+        console.error('Error checking pending game:', e);
+      }
+    };
+
+    if (isConnected && address) {
+      checkPendingGame();
+    }
+  }, [isConnected, address, publicClient]);
   const tableCost = (TABLE_COSTS as any)[tableIndex]
 
   // Contract Reads
@@ -289,6 +387,31 @@ export default function HomeContent() {
             setGameResult(winner.toLowerCase() === address?.toLowerCase() ? 'WINNER' : 'LOSER')
             setModalData({ winner, land: winnerLand, prize })
             setIsWinnerModalOpen(true)
+
+            // Feature 1: Save result to localStorage
+            if (address) {
+              const gameResults = JSON.parse(localStorage.getItem('gameResults') || '{}');
+              const result = {
+                gameId: receipt.transactionHash,
+                didWin: winner.toLowerCase() === address.toLowerCase(),
+                prizeWon: prize,
+                winningLand: winnerLand,
+                tableIndex: decoded.args.tableType,
+                seen: true, // Already seeing it via the live winner modal
+                timestamp: Date.now()
+              };
+              gameResults[address.toLowerCase()] = result;
+              localStorage.setItem('gameResults', JSON.stringify(gameResults));
+
+              // Feature 3: Add to history
+              const historyKey = `gameHistory_${address.toLowerCase()}`;
+              const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+              if (!history.find((h: any) => h.gameId === receipt.transactionHash)) {
+                history.unshift(result);
+                localStorage.setItem(historyKey, JSON.stringify(history));
+              }
+              localStorage.removeItem('pending_game');
+            }
 
             playSound('win')
             confetti({
@@ -411,6 +534,30 @@ export default function HomeContent() {
         setGameResult(winner.toLowerCase() === address?.toLowerCase() ? 'WINNER' : 'LOSER');
         setModalData({ winner, land: winnerLand, prize });
         setIsWinnerModalOpen(true);
+
+        // Save to localStorage for persistence
+        if (address) {
+          const gameResults = JSON.parse(localStorage.getItem('gameResults') || '{}');
+          const result = {
+            gameId: latestLog.transactionHash,
+            didWin: winner.toLowerCase() === address.toLowerCase(),
+            prizeWon: prize,
+            winningLand: winnerLand,
+            tableIndex: latestLog.args.tableType,
+            seen: true,
+            timestamp: Date.now()
+          };
+          gameResults[address.toLowerCase()] = result;
+          localStorage.setItem('gameResults', JSON.stringify(gameResults));
+
+          const historyKey = `gameHistory_${address.toLowerCase()}`;
+          const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+          if (!history.find((h: any) => h.gameId === latestLog.transactionHash)) {
+            history.unshift(result);
+            localStorage.setItem(historyKey, JSON.stringify(history));
+          }
+          localStorage.removeItem('pending_game');
+        }
       }
 
       const newWinners = logs.map((log: any) => ({
@@ -433,10 +580,18 @@ export default function HomeContent() {
 
   const handleJoinGame = (land: number) => {
     playSound('click')
-    if (!isConnected) return
+    if (!isConnected || !address) return
     setWinningLand(null)
     setLastJoinedLand(land)
     localStorage.setItem('last_joined_land', land.toString())
+
+    // Feature 1: Save pending game to check if user leaves and returns
+    localStorage.setItem('pending_game', JSON.stringify({
+      address: address.toLowerCase(),
+      tableIndex,
+      landIndex: land,
+      timestamp: Date.now()
+    }))
 
     const referrer = localStorage.getItem('referral_address') || '0x0000000000000000000000000000000000000000'
 
@@ -910,6 +1065,71 @@ export default function HomeContent() {
                     Got it!
                   </Button>
                 </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* RESULT MODAL (FOR RETURNING USERS) */}
+      <Dialog open={isResultModalOpen} onOpenChange={(open) => {
+        setIsResultModalOpen(open);
+        if (!open && address) {
+          const gameResults = JSON.parse(localStorage.getItem('gameResults') || '{}');
+          if (gameResults[address.toLowerCase()]) {
+            gameResults[address.toLowerCase()].seen = true;
+            localStorage.setItem('gameResults', JSON.stringify(gameResults));
+          }
+        }
+      }}>
+        <DialogContent className="bg-slate-900 border-amber-500/50 text-white max-w-[90vw] rounded-2xl p-6 shadow-[0_0_50px_rgba(245,158,11,0.3)]">
+          <DialogHeader>
+            <DialogTitle className={`font-pirata text-3xl tracking-widest text-center ${localResult?.didWin ? 'text-yellow-500 animate-bounce' : 'text-red-500'}`}>
+              {localResult?.didWin ? '🎉 YOU WON! 🎉' : '💀 GAME OVER 💀'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-6 space-y-6">
+            {localResult?.didWin ? (
+              <div className="text-center space-y-4">
+                <div className="text-6xl mb-2">💰</div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold uppercase tracking-widest text-white/60">Prize Won</p>
+                  <p className="text-4xl font-black text-yellow-500">{localResult?.prizeWon} CELO</p>
+                </div>
+                <div className="inline-block px-4 py-2 bg-white/10 rounded-xl border border-white/10">
+                  <p className="text-xs font-bold uppercase tracking-widest">Winning Land: <span className="text-yellow-400">#{localResult?.winningLand}</span></p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="text-6xl mb-2">🏝️</div>
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold uppercase tracking-widest text-white/60">The treasure was in</p>
+                    <p className="text-xl font-bold text-white">Land #{localResult?.winningLand}</p>
+                  </div>
+                </div>
+                <p className="text-lg font-pirata tracking-widest text-white/80 mt-4">Better luck next time!</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 pt-4">
+              <Button
+                variant="outline"
+                className="h-12 font-bold uppercase tracking-widest border-white/20 hover:bg-white/10"
+                onClick={() => setIsResultModalOpen(false)}
+              >
+                Close
+              </Button>
+              <Button
+                className="h-12 font-bold uppercase tracking-widest bg-yellow-500 hover:bg-yellow-600 text-black shadow-lg shadow-yellow-500/20"
+                onClick={() => {
+                  setIsResultModalOpen(false);
+                  refetchPlayers();
+                  refetchTableInfo();
+                }}
+              >
+                New Game
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
