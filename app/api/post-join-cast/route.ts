@@ -49,8 +49,9 @@ export async function POST(req: NextRequest) {
         playerDisplay = userAddress.slice(0, 4) + '...' + userAddress.slice(-4);
         try {
             const users = (await client.fetchBulkUsersByEthOrSolAddress({ addresses: [userAddress] })) as any;
-            if (users[userAddress.toLowerCase()]) {
-                playerDisplay = `@${users[userAddress.toLowerCase()].username}`;
+            const userData = users[userAddress.toLowerCase()]?.[0];
+            if (userData?.username) {
+                playerDisplay = `@${userData.username}`;
             }
         } catch (e) {
             console.error('Error fetching username from Neynar:', e);
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
         playerDisplay = `@${playerDisplay}`;
     }
 
-    const referralUrl = `https://find-celo.vercel.app/?ref=${userAddress}`;
+    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${userAddress}`;
     const castText = `⚔️ Adventurer ${playerDisplay} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${landIndex}.\n\nNow ${seatsFilled}/6 players are on the island. ${remaining} more adventurer(s) needed to find the treasure!\n\nJoin the hunt: 👇\n${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`;
 
     const response = await client.publishCast({
