@@ -31,8 +31,6 @@ export default function HomeContent() {
   const [selectedTable, setSelectedTable] = useState('BRONZE')
   const [isMiniPay, setIsMiniPay] = useState(false)
   const [farcasterUser, setFarcasterUser] = useState<Context.UserContext | null>(null)
-  const [showShareJoin, setShowShareJoin] = useState(false)
-  const [showShareWin, setShowShareWin] = useState(false)
   const [lastJoinedLand, setLastJoinedLand] = useState<number | null>(null)
 
   // Load lastJoinedLand from localStorage
@@ -315,36 +313,21 @@ export default function HomeContent() {
               })
             }
           } else {
+            const castText = `Adventurer ${username} has set foot on Treasure Island! ✨\n\nThey claimed Land ${lastJoinedLand}.\n\nNow ${currentFilled}/6 players are on the island. ${6 - currentFilled} more adventurers needed to find the treasure!\n\nJoin the hunt: 🔥\nhttps://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}\n\n#FindCelo #Celo #TreasureIsland`;
+
             try {
-              const payload = {
-                landIndex: lastJoinedLand,
-                userAddress: address,
-                seatsFilled: currentFilled,
-                playerUsername: farcasterUser?.username,
-                txHash: receipt.transactionHash
-              };
-              console.log('Sending post-join-cast payload:', payload);
-              const response = await fetch('/api/post-join-cast', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+              await sdk.actions.composeCast({
+                text: castText,
               });
-              const data = await response.json();
-              console.log('post-join-cast response:', data);
-              if (response.ok) {
-                localStorage.removeItem('last_joined_land');
-              } else {
-                console.error('post-join-cast failed:', data.error);
-                setShowShareJoin(true);
-              }
             } catch (error) {
-              console.error('Error calling post-join-cast API:', error)
-              setShowShareJoin(true)
+              const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}`;
+              window.open(warpcastUrl, '_blank');
             }
+            localStorage.removeItem('last_joined_land');
+            setLastJoinedLand(null);
           }
         } catch (error) {
           console.error('Error triggering auto-cast:', error)
-          setShowShareJoin(true)
         }
       }
 
@@ -361,8 +344,6 @@ export default function HomeContent() {
         latestWinner.roundId !== lastProcessedWinnerRound
       ) {
         setLastWinAmount(latestWinner.amount)
-        setShowShareWin(true)
-        setShowShareJoin(false)
         setLastProcessedWinnerRound(latestWinner.roundId)
 
         playSound('win')
@@ -456,8 +437,6 @@ export default function HomeContent() {
     setWinningLand(null)
     setLastJoinedLand(land)
     localStorage.setItem('last_joined_land', land.toString())
-    setShowShareJoin(false)
-    setShowShareWin(false)
 
     const referrer = localStorage.getItem('referral_address') || '0x0000000000000000000000000000000000000000'
 
@@ -468,62 +447,6 @@ export default function HomeContent() {
       args: [BigInt(land), referrer as `0x${string}`, tableIndex],
       value: parseEther(tableCost),
     })
-  }
-
-  const handleShareJoin = async () => {
-    const username = farcasterUser?.username ? `@${farcasterUser.username}` : (address?.slice(0, 4) + '...' + address?.slice(-4))
-    const filledCount = seatsFilled
-    const emptyCount = 6 - filledCount
-    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`
-    const text = `⚔️ Adventurer ${username} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${lastJoinedLand}.\n\nNow ${filledCount}/6 players are on the island. ${emptyCount} more adventurers needed to find the treasure!\n\nJoin the hunt: 👇\n${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`
-
-    try {
-      const res = await fetch('/api/neynar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
-      })
-      if (res.ok) {
-        setShowShareJoin(false)
-      } else {
-        throw new Error('Neynar post failed')
-      }
-    } catch (error) {
-      console.error('Error sharing join via Neynar:', error)
-      try {
-        await sdk.actions.composeCast({ text, embeds: [referralUrl] })
-        setShowShareJoin(false)
-      } catch (e) {
-        console.error('Fallback sharing failed:', e)
-      }
-    }
-  }
-
-  const handleShareWin = async () => {
-    const winnerUsername = farcasterUser?.username ? `@${farcasterUser.username}` : address?.slice(0, 4) + '...' + address?.slice(-4)
-    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`
-    const text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${lastWinAmount} CELO! 🤑\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 ${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`
-
-    try {
-      const res = await fetch('/api/neynar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
-      })
-      if (res.ok) {
-        setShowShareWin(false)
-      } else {
-        throw new Error('Neynar post failed')
-      }
-    } catch (error) {
-      console.error('Error sharing win via Neynar:', error)
-      try {
-        await sdk.actions.composeCast({ text, embeds: [referralUrl] })
-        setShowShareWin(false)
-      } catch (e) {
-        console.error('Fallback sharing failed:', e)
-      }
-    }
   }
 
   const seatsFilled = useMemo(() => {
@@ -767,26 +690,6 @@ export default function HomeContent() {
                 </p>
              )}
           </div>
-
-          {(showShareJoin || showShareWin) && (
-            <div className="animate-in fade-in slide-in-from-top-2 duration-500">
-              <Button
-                onClick={showShareWin ? handleShareWin : handleShareJoin}
-                className="w-full h-12 font-black uppercase tracking-widest bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white border-none shadow-lg shadow-blue-500/20 group"
-              >
-                {showShareWin ? (
-                  <span className="flex items-center gap-2">
-                    🎉 Share Win on Farcaster
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    📢 Share on Farcaster
-                  </span>
-                )}
-                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* LAND GRID */}

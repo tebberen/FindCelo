@@ -31,34 +31,6 @@ export default function Profile() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleShare = async () => {
-    if (!address || !profile) return
-
-    const amount = Number(formatEther((profile as any).totalCELOWon)).toFixed(2)
-    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`
-    const text = `I have collected ${amount} CELO in total on FindCelo! 🏝️💰 Join the treasure hunt: ${referralUrl} #FindCelo #Celo`
-
-    try {
-      const res = await fetch('/api/neynar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
-      })
-      if (!res.ok) throw new Error('Neynar post failed')
-    } catch (error) {
-      console.error('Error sharing via Neynar:', error)
-      try {
-        await sdk.actions.composeCast({
-          text,
-          embeds: [referralUrl]
-        })
-      } catch (e) {
-        console.error('Fallback sharing failed:', e)
-        const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`
-        window.open(warpcastUrl, '_blank')
-      }
-    }
-  }
 
   if (!isConnected) {
     return (
@@ -157,12 +129,6 @@ export default function Profile() {
                           <p className="text-4xl font-black text-primary">
                              {Number(formatEther((profile as any).totalCELOWon)).toFixed(2)} CELO
                           </p>
-                          <button
-                            onClick={handleShare}
-                            className="px-4 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-xl transition-colors text-xs font-black uppercase tracking-widest text-primary"
-                          >
-                            Share on Farcaster
-                          </button>
                         </div>
                     </div>
 
