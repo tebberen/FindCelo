@@ -24,8 +24,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    if (!apiKey || !signerUuid) {
-      return NextResponse.json({ error: 'Neynar API key or Signer UUID not configured' }, { status: 500 });
+    if (!apiKey) {
+      console.error('NEYNAR_API_KEY is not set');
+      return NextResponse.json({ error: 'NEYNAR_API_KEY not configured' }, { status: 500 });
+    }
+    if (!signerUuid) {
+      console.error('NEYNAR_SIGNER_UUID is not set');
+      return NextResponse.json({ error: 'NEYNAR_SIGNER_UUID not configured' }, { status: 500 });
     }
 
     // Verify the txHash on-chain before casting to prevent fake cast requests

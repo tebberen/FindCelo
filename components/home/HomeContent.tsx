@@ -310,17 +310,25 @@ export default function HomeContent() {
             }
           } else {
             try {
-              await fetch('/api/post-join-cast', {
+              const payload = {
+                landIndex: lastJoinedLand,
+                userAddress: address,
+                seatsFilled: currentFilled,
+                playerUsername: farcasterUser?.username,
+                txHash: receipt.transactionHash
+              };
+              console.log('Sending post-join-cast payload:', payload);
+              const response = await fetch('/api/post-join-cast', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  landIndex: lastJoinedLand,
-                  userAddress: address,
-                  seatsFilled: currentFilled,
-                  playerUsername: farcasterUser?.username,
-                  txHash: receipt.transactionHash
-                })
-              })
+                body: JSON.stringify(payload)
+              });
+              const data = await response.json();
+              console.log('post-join-cast response:', data);
+              if (!response.ok) {
+                console.error('post-join-cast failed:', data.error);
+                setShowShareJoin(true);
+              }
             } catch (error) {
               console.error('Error calling post-join-cast API:', error)
               setShowShareJoin(true)
