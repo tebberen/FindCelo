@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
       if (!address) return NextResponse.json({ error: 'Address required' }, { status: 400 });
 
       const response = await client.fetchBulkUsersByEthOrSolAddress({ addresses: [address] });
-      return NextResponse.json(response[address.toLowerCase()] || null);
+      const user = response[address.toLowerCase()]?.[0] || null;
+      return NextResponse.json(user);
     }
 
     if (action === 'fetch-bulk-users') {

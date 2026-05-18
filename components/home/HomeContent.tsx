@@ -297,12 +297,17 @@ export default function HomeContent() {
             text = `🎉 TREASURE FOUND! 🎉\n\n${winnerUsername} won ${prize} CELO! 🤑\nThe treasure was hidden in Land ${winnerLand}.\n\nCongratulations! 🎊 A new round has started. Try your luck:\n👇 ${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`
 
             try {
-              await fetch('/api/neynar', {
+              const res = await fetch('/api/neynar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'post-cast', text, embeds: [referralUrl] })
               })
+              if (!res.ok) {
+                console.error('Neynar auto-cast failed, showing manual share');
+                setShowShareWin(true);
+              }
             } catch (e) {
+              console.error('Neynar API error, using SDK fallback');
               await sdk.actions.composeCast({
                 text,
                 embeds: [referralUrl]
@@ -310,7 +315,7 @@ export default function HomeContent() {
             }
           } else {
             try {
-              await fetch('/api/post-join-cast', {
+              const res = await fetch('/api/post-join-cast', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -321,6 +326,10 @@ export default function HomeContent() {
                   txHash: receipt.transactionHash
                 })
               })
+              if (!res.ok) {
+                console.error('Post-join auto-cast failed, showing manual share');
+                setShowShareJoin(true);
+              }
             } catch (error) {
               console.error('Error calling post-join-cast API:', error)
               setShowShareJoin(true)
