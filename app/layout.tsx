@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'FindCelo - Treasure Island Game',
     description: '6 lands, 1 treasure, winner takes 5x CELO. Play now!',
-    images: ['https://find-celo.vercel.app/images/logo.png'],
+    images: ['https://find-celo.vercel.app/og-image.png?v=3'],
   },
   alternates: {
     types: {
@@ -21,15 +21,15 @@ export const metadata: Metadata = {
     },
   },
   other: {
-    'og:image': 'https://find-celo.vercel.app/images/logo.png',
-    'fc:frame:image': 'https://find-celo.vercel.app/images/logo.png',
+    'og:image': 'https://find-celo.vercel.app/og-image.png?v=3',
+    'fc:frame:image': 'https://find-celo.vercel.app/og-image.png?v=3',
     'og:title': 'FindCelo - Treasure Island Game',
     'og:description': '6 lands, 1 treasure, winner takes 5x CELO. Play now!',
     'fc:miniapp': JSON.stringify({
       version: '1',
-      imageUrl: 'https://find-celo.vercel.app/images/logo.png',
-      iconUrl: 'https://find-celo.vercel.app/images/logo.png',
-      splashImageUrl: 'https://find-celo.vercel.app/images/logo.png',
+      imageUrl: 'https://find-celo.vercel.app/og-image.png?v=3',
+      iconUrl: 'https://find-celo.vercel.app/images/logo.png?v=3',
+      splashImageUrl: 'https://find-celo.vercel.app/images/logo.png?v=3',
       splashBackgroundColor: '#3e2722',
       button: {
         title: '🏝️ Play FindCelo',
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
           banner: {
             type: "image",
             props: {
-              src: "https://find-celo.vercel.app/images/logo.png",
+              src: "https://find-celo.vercel.app/images/logo.png?v=3",
               aspectRatio: "1:1"
             }
           },
