@@ -60,14 +60,13 @@ export async function POST(req: NextRequest) {
     const winningLand = Number(decoded.args.winningLand);
     const tableType = decoded.args.tableType;
 
+    const neynarApiKey = process.env.NEYNAR_API_KEY || '';
+    const signerUuid = process.env.NEYNAR_SIGNER_UUID || '';
+    const client = new NeynarAPIClient({ apiKey: neynarApiKey });
+
     // Autonomous Agent: Post Winner Announcement Cast
-    try {
-      const neynarApiKey = process.env.NEYNAR_API_KEY || '';
-      const signerUuid = process.env.NEYNAR_SIGNER_UUID || '';
-
-      if (neynarApiKey && signerUuid) {
-        const client = new NeynarAPIClient({ apiKey: neynarApiKey });
-
+    if (neynarApiKey && signerUuid) {
+      try {
         // Fetch winner username for better cast text
         const response: any = await client.fetchBulkUsersByEthOrSolAddress({ addresses: [winner] });
         const userData = response[winner.toLowerCase()]?.[0];
@@ -81,9 +80,9 @@ export async function POST(req: NextRequest) {
           embeds: [{ url: 'https://find-celo.vercel.app' }] as any
         });
         console.log('Autonomous winner announcement posted');
+      } catch (err) {
+        console.error('Failed to post autonomous winner announcement:', err);
       }
-    } catch (err) {
-      console.error('Failed to post autonomous winner announcement:', err);
     }
 
     // Fetch the 6 players of this game from on-chain logs for maximum security and reliability
@@ -101,45 +100,61 @@ export async function POST(req: NextRequest) {
       .slice(-6)
       .map((log: any) => log.args.player);
 
-    const uniquePlayers = Array.from(new Set(players));
+    const uniquePlayers = Array.from(new Set(players)).filter(p => p && p !== '0x0000000000000000000000000000000000000000');
+
+    // Fetch FIDs in bulk from Neynar to be reliable on ephemeral environments
+    let playerFidMap: Record<string, number> = {};
+    try {
+      const userResponse: any = await client.fetchBulkUsersByEthOrSolAddress({ addresses: uniquePlayers as string[] });
+      for (const addr of uniquePlayers) {
+        const userData = userResponse[(addr as string).toLowerCase()]?.[0];
+        if (userData?.fid) {
+          playerFidMap[(addr as string).toLowerCase()] = userData.fid;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch player FIDs from Neynar:', err);
+    }
 
     // Notification promises
     const notifications = [];
 
     for (const playerAddress of uniquePlayers) {
-      if (!playerAddress || playerAddress === '0x0000000000000000000000000000000000000000') continue;
+      const addr = (playerAddress as string).toLowerCase();
+      const fid = playerFidMap[addr] || getFidByAddress(addr);
 
-      const fid = getFidByAddress(playerAddress as string);
       if (!fid) {
         console.log(`No FID found for address ${playerAddress}, skipping notification.`);
         continue;
       }
 
+      const isWinner = addr === winner.toLowerCase();
+      const prizeValue = Number(prize);
+      const stake = prizeValue / 5;
+
+      // Feature 1: Push Notification (only if token exists)
       const tokenData = getTokenByFid(fid);
-      if (!tokenData) {
-        console.log(`No notification token found for FID ${fid}, skipping.`);
-        continue;
+      if (tokenData) {
+        const title = isWinner ? "🎉 YOU WON!" : "💀 TREASURE FOUND!";
+        const notificationBody = isWinner
+          ? `You won ${prize} CELO on FindCelo! Tap to play again.`
+          : `Treasure was on Land #${winningLand}. You lost ${stake.toFixed(1)} CELO. Try again!`;
+
+        notifications.push(
+          fetch(tokenData.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              notificationToken: tokenData.token,
+              title,
+              body: notificationBody,
+              targetUrl: 'https://find-celo.vercel.app',
+            }),
+          }).then(res => res.json().catch(() => ({})))
+        );
+      } else {
+        console.log(`No push notification token for FID ${fid}, only sending DM if possible.`);
       }
-
-      const isWinner = (playerAddress as string).toLowerCase() === winner.toLowerCase();
-
-      const title = isWinner ? "🎉 YOU WON!" : "💀 TREASURE FOUND!";
-      const notificationBody = isWinner
-        ? `You won ${prize} CELO on FindCelo! Tap to play again.`
-        : `Treasure was on Land #${winningLand}. You lost ${Number(prize) / 5} CELO. Try again!`;
-
-      notifications.push(
-        fetch(tokenData.url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            notificationToken: tokenData.token,
-            title,
-            body: notificationBody,
-            targetUrl: 'https://find-celo.vercel.app',
-          }),
-        }).then(res => res.json().catch(() => ({})))
-      );
 
       // Feature 2: Send Snap DM
       notifications.push(

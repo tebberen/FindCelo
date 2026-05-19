@@ -30,15 +30,18 @@ export async function POST(req: NextRequest) {
       : `${BASE_URL}/images/loser.png`;
 
     const snapPayload = {
-      version: "1.0",
+      version: "1",
       title,
       description,
       imageUrl,
       button: {
         title: didWin ? "Play Again" : "Try Again",
         action: {
-          type: "launch_miniapp",
-          url: `${BASE_URL}/?ref=${winnerAddress}`
+          type: "launch_frame",
+          name: "FindCelo",
+          url: `${BASE_URL}/?ref=${winnerAddress}`,
+          splashImageUrl: `${BASE_URL}/images/logo.png`,
+          splashBackgroundColor: "#3e2722"
         }
       }
     };
