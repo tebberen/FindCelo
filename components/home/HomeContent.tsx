@@ -32,6 +32,23 @@ export default function HomeContent() {
   const [isMiniPay, setIsMiniPay] = useState(false)
   const [farcasterUser, setFarcasterUser] = useState<Context.UserContext | null>(null)
   const [lastJoinedLand, setLastJoinedLand] = useState<number | null>(null)
+  const [preSelectedLand, setPreSelectedLand] = useState<number | null>(null)
+
+  // Handle Snap query parameters
+  useEffect(() => {
+    const tier = searchParams.get('tier')
+    if (tier === '0') setSelectedTable('BRONZE')
+    else if (tier === '1') setSelectedTable('SILVER')
+    else if (tier === '2') setSelectedTable('GOLD')
+
+    const land = searchParams.get('land')
+    if (land) {
+      const landNum = parseInt(land)
+      if (landNum >= 1 && landNum <= 6) {
+        setPreSelectedLand(landNum)
+      }
+    }
+  }, [searchParams])
 
   // Load lastJoinedLand from localStorage
   useEffect(() => {
@@ -884,12 +901,17 @@ export default function HomeContent() {
                     ${isWinner
                       ? 'border-yellow-400 bg-yellow-400/20 shadow-[0_0_15px_rgba(255,215,0,0.4)] z-10'
                       : !isOccupied
-                        ? 'hover:border-primary/50 bg-black/30 backdrop-blur-sm border-amber-500/30'
+                        ? (preSelectedLand === land ? 'border-primary bg-primary/20 shadow-[0_0_10px_rgba(252,255,82,0.3)]' : 'hover:border-primary/50 bg-black/30 backdrop-blur-sm border-amber-500/30')
                         : isUser
                           ? 'border-primary ring-1 ring-primary/20 bg-black/60 backdrop-blur-sm'
                           : 'opacity-60 bg-black/40 backdrop-blur-sm border-white/10'}
                   `}
-                  onClick={() => !isOccupied && handleJoinGame(land)}
+                  onClick={() => {
+                    if (!isOccupied) {
+                      setPreSelectedLand(null)
+                      handleJoinGame(land)
+                    }
+                  }}
                 >
                   <div className="w-full aspect-square relative overflow-hidden bg-black/20">
                     <img
