@@ -14,5 +14,16 @@
     "splashImageUrl": "https://find-celo.vercel.app/images/logo.png",
     "splashBackgroundColor": "#3e2722",
     "webhookUrl": "https://api.neynar.com/f/app/0f448b22-6aeb-4db1-b59d-da37e382ea1a/event"
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "FindCelo",
+    "homeUrl": "https://find-celo.vercel.app",
+    "iconUrl": "https://find-celo.vercel.app/images/logo.png",
+    "imageUrl": "https://find-celo.vercel.app/images/logo.png",
+    "buttonTitle": "Play FindCelo",
+    "splashImageUrl": "https://find-celo.vercel.app/images/logo.png",
+    "splashBackgroundColor": "#3e2722",
+    "webhookUrl": "https://api.neynar.com/f/app/0f448b22-6aeb-4db1-b59d-da37e382ea1a/event"
   }
 }
