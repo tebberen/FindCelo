@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch the 6 players of this game from on-chain logs for maximum security and reliability
-    const fromBlock = receipt.blockNumber > 500n ? receipt.blockNumber - 500n : 0n;
+    const fromBlock = receipt.blockNumber > 2000n ? receipt.blockNumber - 2000n : 0n;
     const joinLogs = await publicClient.getLogs({
       address: CONTRACT_ADDRESS as `0x${string}`,
       event: FIND_CELO_ABI.find((x: any) => x.name === 'GameJoined') as any,

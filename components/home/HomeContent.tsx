@@ -226,11 +226,13 @@ export default function HomeContent() {
         if (pending.address.toLowerCase() !== address.toLowerCase()) return;
 
         // Fetch TableFilled events for this table since the user joined
-        // Using a block number from when the contract was roughly deployed to avoid scanning from 0
+        const currentBlock = await publicClient.getBlockNumber();
+        const fromBlock = currentBlock > 10000n ? currentBlock - 10000n : 0n;
+
         const logs = await publicClient.getLogs({
           address: CONTRACT_ADDRESS as `0x${string}`,
           event: FIND_CELO_ABI.find((x: any) => x.name === 'TableFilled') as any,
-          fromBlock: 26000000n,
+          fromBlock,
           toBlock: 'latest',
         });
 
