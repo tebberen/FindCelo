@@ -65,7 +65,7 @@ export default function RecentGames() {
                             {game.didWin ? 'WIN' : 'LOSS'}
                           </Badge>
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                            {game.tableIndex === 0 ? 'Bronze' : game.tableIndex === 1 ? 'Silver' : 'Gold'} Table
+                            {game.tableIndex === 0 ? '1 CELO' : game.tableIndex === 1 ? '5 CELO' : '10 CELO'} Table
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">

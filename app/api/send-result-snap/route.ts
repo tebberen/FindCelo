@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
         title: didWin ? "Play Again" : "Try Again",
         action: {
           type: "launch_miniapp",
-          url: BASE_URL
+          url: `${BASE_URL}/?ref=${winnerAddress}`
         }
       }
     };
