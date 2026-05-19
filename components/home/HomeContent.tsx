@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { HelpCircle, Volume2, VolumeX } from 'lucide-react'
+import { HelpCircle, Volume2, VolumeX, History } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -225,27 +225,33 @@ export default function HomeContent() {
         const pending = JSON.parse(pendingRaw);
         if (pending.address.toLowerCase() !== address.toLowerCase()) return;
 
-        // Fetch TableFilled events for this table since the user joined
-        // Using a block number from when the contract was roughly deployed to avoid scanning from 0
+        console.log("Checking for pending game result...");
+
+        const currentBlock = await publicClient.getBlockNumber();
+        const fromBlock = currentBlock > 10000n ? currentBlock - 10000n : 0n;
+
+        // Fetch TableFilled events for this table
         const logs = await publicClient.getLogs({
           address: CONTRACT_ADDRESS as `0x${string}`,
           event: FIND_CELO_ABI.find((x: any) => x.name === 'TableFilled') as any,
-          fromBlock: 26000000n,
+          fromBlock,
           toBlock: 'latest',
         });
 
-        // Find if any TableFilled event happened after joining that matches the user's participation
-        // For simplicity, we check the last 20 events
-        const tableFilledLogs = logs.reverse().slice(0, 20);
+        // Find if any TableFilled event matches the user's participation
+        const tableFilledLogs = logs.reverse().slice(0, 10);
 
         for (const log of tableFilledLogs) {
           const txHash = log.transactionHash;
           const gameResults = JSON.parse(localStorage.getItem('gameResults') || '{}');
 
-          // If we already have this result saved for this address, skip
-          if (gameResults[address.toLowerCase()]?.gameId === txHash) continue;
+          if (gameResults[address.toLowerCase()]?.gameId === txHash && gameResults[address.toLowerCase()]?.seen) continue;
 
-          // We need to know who the 6 players were. We check GameJoined events in that transaction block or before
+          const tableType = (log as any).args.tableType;
+
+          // Optimization: Only check join logs if the table type matches
+          if (Number(tableType) !== Number(pending.tableIndex)) continue;
+
           const joinLogs = await publicClient.getLogs({
             address: CONTRACT_ADDRESS as `0x${string}`,
             event: FIND_CELO_ABI.find((x: any) => x.name === 'GameJoined') as any,
@@ -253,9 +259,8 @@ export default function HomeContent() {
             toBlock: log.blockNumber,
           });
 
-          const tableType = (log as any).args.tableType;
           const players = joinLogs
-            .filter((j: any) => j.args.tableType === tableType)
+            .filter((j: any) => Number(j.args.tableType) === Number(tableType))
             .slice(-6)
             .map((j: any) => j.args.player.toLowerCase());
 
@@ -280,7 +285,7 @@ export default function HomeContent() {
             gameResults[address.toLowerCase()] = result;
             localStorage.setItem('gameResults', JSON.stringify(gameResults));
 
-            // Save to history (Feature 3)
+            // Save to history
             const historyKey = `gameHistory_${address.toLowerCase()}`;
             const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
             if (!history.find((h: any) => h.gameId === txHash)) {
@@ -647,6 +652,13 @@ export default function HomeContent() {
               <Link href="/leaderboard">
                 <span>🏆</span>
                 <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">Leader</span>
+              </Link>
+            </Button>
+
+            <Button onClick={() => playSound('click')} asChild variant="ghost" size="sm" className="h-6 gap-0.5 px-1 text-white hover:bg-white/10 border border-white/5 bg-white/5 shrink-0">
+              <Link href="/history">
+                <History className="w-3 h-3" />
+                <span className="hidden sm:inline text-[9px] font-bold uppercase tracking-wider">Games</span>
               </Link>
             </Button>
 
