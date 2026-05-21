@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://find-celo.vercel.app';
 const CELO_YELLOW = "#FCFF52";
-const LOGO_URL = `${BASE_URL}/images/logo.png?v=3`;
+const LOGO_URL = `${BASE_URL}/images/logo.png?v=4`;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
