@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient, http, formatEther } from 'viem';
 import { celo } from 'viem/chains';
 
 const apiKey = process.env.NEYNAR_API_KEY || '';
@@ -49,26 +49,38 @@ export async function POST(req: NextRequest) {
 
     const remaining = 6 - seatsFilled;
 
+    let cost = 1;
+    if (txHash) {
+      try {
+        const transaction = await publicClient.getTransaction({ hash: txHash as `0x${string}` });
+        cost = Number(formatEther(transaction.value));
+      } catch (error) {
+        console.error('Error fetching transaction value:', error);
+      }
+    }
+    const potentialPrize = cost * 5;
+
     // Get username from Neynar if possible, or use address
     let playerDisplay = playerUsername;
     if (!playerDisplay) {
         playerDisplay = userAddress.slice(0, 4) + '...' + userAddress.slice(-4);
         try {
             const users = (await client.fetchBulkUsersByEthOrSolAddress({ addresses: [userAddress] })) as any;
-            if (users[userAddress.toLowerCase()]) {
-                playerDisplay = `@${users[userAddress.toLowerCase()].username}`;
+            const userData = users[userAddress.toLowerCase()]?.[0];
+            if (userData?.username) {
+                playerDisplay = userData.username;
             }
         } catch (e) {
             console.error('Error fetching username from Neynar:', e);
         }
     }
 
-    if (playerDisplay && !playerDisplay.startsWith('@') && !playerDisplay.startsWith('0x')) {
-        playerDisplay = `@${playerDisplay}`;
+    if (playerDisplay && playerDisplay.startsWith('@')) {
+        playerDisplay = playerDisplay.slice(1);
     }
 
-    const referralUrl = `https://find-celo.vercel.app/?ref=${userAddress}`;
-    const castText = `⚔️ Adventurer ${playerDisplay} has set foot on Treasure Island! ⚔️\n\n🏝️ They claimed Land ${landIndex}.\n\nNow ${seatsFilled}/6 players are on the island. ${remaining} more adventurer(s) needed to find the treasure!\n\nJoin the hunt: 👇\n${referralUrl}\n\n#FindCelo #Celo #TreasureIsland`;
+    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${userAddress}`;
+    const castText = `🗺️ @${playerDisplay} just bought Treasure Chest #${landIndex} for ${cost} $CELO!\n\n🎁 Is #${landIndex} the winning chest? \n💎 Potential reward: ${potentialPrize} $CELO (5x)\n\nNow ${seatsFilled}/6 chests are opened. ${remaining} spots left before treasure is revealed!\n\nWill @${playerDisplay} win ${potentialPrize} $CELO? Or will someone else take the prize?\n\nJoin now and claim your chest 👇\n\n${referralUrl}\n\n#FindCelo #Celo #TreasureIsland /celo`;
 
     const response = await client.publishCast({
       signerUuid,
