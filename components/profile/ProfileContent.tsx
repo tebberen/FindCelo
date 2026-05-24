@@ -25,7 +25,7 @@ export default function Profile() {
 
   const copyReferral = () => {
     if (!address) return
-    const url = `${window.location.origin}/?ref=${address}`
+    const url = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -128,7 +128,7 @@ export default function Profile() {
 
                           <div className="flex bg-background/40 rounded-2xl p-4 items-center border-2 border-border group">
                               <code className="text-[10px] font-mono break-all flex-1 text-muted-foreground">
-                                  {typeof window !== 'undefined' ? `${window.location.origin}/?ref=${address}` : ''}
+                                  {`https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`}
                               </code>
                               <button
                                   onClick={copyReferral}

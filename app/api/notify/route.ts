@@ -72,12 +72,12 @@ export async function POST(req: NextRequest) {
         const userData = response[winner.toLowerCase()]?.[0];
         const winnerDisplay = userData?.username ? `@${userData.username}` : `${winner.slice(0, 6)}...${winner.slice(-4)}`;
 
-        const castText = `🏆 Congratulations ${winnerDisplay}! Won ${prize} CELO on FindCelo! 🏝️💰\n\nThe treasure was hidden in Land #${winningLand}.\n\nPlay now: 👇\nhttps://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo #FindCelo #Celo`;
+        const castText = `🏆 Congratulations ${winnerDisplay}! Won ${prize} CELO on FindCelo! 🏝️💰\n\nThe treasure was hidden in Land #${winningLand}.\n\nPlay now: 👇\nhttps://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${winner} #FindCelo #Celo`;
 
         await client.publishCast({
           signerUuid,
           text: castText,
-          embeds: [{ url: 'https://find-celo.vercel.app' }] as any
+          embeds: [{ url: `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${winner}` }] as any
         });
         console.log('Autonomous winner announcement posted');
       } catch (err) {
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
               notificationToken: tokenData.token,
               title,
               body: notificationBody,
-              targetUrl: 'https://find-celo.vercel.app',
+              targetUrl: 'https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo',
             }),
           }).then(res => res.json().catch(() => ({})))
         );
