@@ -77,7 +77,8 @@ export async function POST(req: NextRequest) {
         await client.publishCast({
           signerUuid,
           text: castText,
-          embeds: [{ url: `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${winner}` }] as any
+          embeds: [{ url: `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${winner}` }] as any,
+          channelId: 'celo'
         });
         console.log('Autonomous winner announcement posted');
       } catch (err) {

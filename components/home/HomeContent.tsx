@@ -451,7 +451,8 @@ export default function HomeContent() {
             } catch (e) {
               await sdk.actions.composeCast({
                 text,
-                embeds: [referralUrl]
+                embeds: [referralUrl],
+                channelKey: 'celo'
               })
             }
           } else {
@@ -464,9 +465,10 @@ export default function HomeContent() {
             try {
               await sdk.actions.composeCast({
                 text: castText,
+                channelKey: 'celo'
               });
             } catch (error) {
-              const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}`;
+              const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}&channelKey=celo`;
               window.open(warpcastUrl, '_blank');
             }
             localStorage.removeItem('last_joined_land');
