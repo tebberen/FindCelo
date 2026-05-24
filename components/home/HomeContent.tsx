@@ -379,7 +379,7 @@ export default function HomeContent() {
 
           let text = ''
           const username = farcasterUser?.username ? farcasterUser.username : (address?.slice(0, 4) + '...' + address?.slice(-4))
-          const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}`
+          const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo`
 
           if (tableFilledLog) {
             const decoded = decodeEventLog({
@@ -460,7 +460,7 @@ export default function HomeContent() {
             const potentialPrize = cost * 5;
             const remaining = 6 - currentFilled;
 
-            const castText = `🗺️ @${username} just bought Treasure Chest #${lastJoinedLand} for ${cost} $CELO!\n\n🎁 Is #${lastJoinedLand} the winning chest? \n💎 Potential reward: ${potentialPrize} $CELO (5x)\n\nNow ${currentFilled}/6 chests are opened. ${remaining} spots left before treasure is revealed!\n\nWill @${username} win ${potentialPrize} $CELO? Or will someone else take the prize?\n\nJoin now and claim your chest 👇\n\nhttps://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${address}\n\n#FindCelo #Celo #TreasureIsland /celo`;
+            const castText = `🗺️ @${username} just bought Treasure Chest #${lastJoinedLand} for ${cost} $CELO!\n\n🎁 Is #${lastJoinedLand} the winning chest? \n💎 Potential reward: ${potentialPrize} $CELO (5x)\n\nNow ${currentFilled}/6 chests are opened. ${remaining} spots left before treasure is revealed!\n\nWill @${username} win ${potentialPrize} $CELO? Or will someone else take the prize?\n\nJoin now and claim your chest 👇\n\nhttps://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo\n\n#FindCelo #Celo #TreasureIsland /celo`;
 
             try {
               await sdk.actions.composeCast({

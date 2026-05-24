@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         action: {
           type: "launch_frame",
           name: "FindCelo",
-          url: `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${winnerAddress}`,
+          url: `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo`,
           splashImageUrl: `${BASE_URL}/images/logo.png`,
           splashBackgroundColor: "#3e2722"
         }
