@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
           open_btn: {
             type: "button",
             props: { label: "Open App" },
-            on: { press: { action: "open_mini_app", params: { target: BASE_URL } } }
+            on: { press: { action: "open_mini_app", params: { target: "https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo" } } }
           }
         }
       }
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
           open_app_btn: {
             type: "button",
             props: { label: "Open FindCelo", variant: "primary" },
-            on: { press: { action: "open_mini_app", params: { target: `${BASE_URL}/?tier=${tier}` } } }
+            on: { press: { action: "open_mini_app", params: { target: `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?tier=${tier}` } } }
           }
         }
       }
