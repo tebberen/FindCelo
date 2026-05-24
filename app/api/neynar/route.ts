@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
       const response = await client.publishCast({
         signerUuid,
         text,
-        embeds: embeds?.map((url: string) => ({ url }))
+        embeds: embeds?.map((url: string) => ({ url })),
+        channelId: 'celo'
       });
       return NextResponse.json(response);
     }
