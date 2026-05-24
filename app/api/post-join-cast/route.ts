@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         playerDisplay = playerDisplay.slice(1);
     }
 
-    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo?ref=${userAddress}`;
+    const referralUrl = `https://farcaster.xyz/miniapps/11ftF6b53u7y/findcelo`;
     const castText = `🗺️ @${playerDisplay} just bought Treasure Chest #${landIndex} for ${cost} $CELO!\n\n🎁 Is #${landIndex} the winning chest? \n💎 Potential reward: ${potentialPrize} $CELO (5x)\n\nNow ${seatsFilled}/6 chests are opened. ${remaining} spots left before treasure is revealed!\n\nWill @${playerDisplay} win ${potentialPrize} $CELO? Or will someone else take the prize?\n\nJoin now and claim your chest 👇\n\n${referralUrl}\n\n#FindCelo #Celo #TreasureIsland /celo`;
 
     const response = await client.publishCast({
